@@ -27,6 +27,7 @@ struct SidebarView: View {
 
                     sectionHeader("Applications")
                     SidebarNavRow(section: .installedApps)
+                    SidebarNavRow(section: .installedPackages)
 
                     sectionHeader("Cleanup")
                     sectionHeader("Advanced Tools", subtle: true)
@@ -104,9 +105,21 @@ private struct SidebarNavRow: View {
     private var badgeText: some View {
         if section == .installedApps, model.installedAppsLoaded {
             Text("\(model.installedApps.count)")
+        } else if section == .installedPackages, model.installedPackagesLoaded {
+            Text("\(model.installedPackages.count)")
+        } else if section == .aiSkills, model.aiSkillsLoaded {
+            let flagged = model.aiSkillEntries.filter(\.needsAttention).count
+            if flagged > 0 {
+                Text("\(flagged)")
+                    .foregroundStyle(Theme.dangerRed)
+            } else {
+                Text("\(model.aiSkillEntries.count)")
+            }
         } else if section == .trash, model.trashTotalBytes > 0 {
             Text(ByteText.storage(model.trashTotalBytes))
-        } else if section != .overview && section != .installedApps && section != .trash,
+                .foregroundStyle(model.trashDominatesReclaimable ? Theme.dangerRed : Theme.secondaryText)
+        } else if section != .overview && section != .installedApps && section != .installedPackages
+                    && section != .aiSkills && section != .trash,
                   model.scannedSections.contains(section) {
             let total = model.totalBytes(for: section)
             if total > 0 {

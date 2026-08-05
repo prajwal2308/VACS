@@ -98,6 +98,5 @@
   { "id": "brave-cache", "name": "Brave cache", "path": "~/Library/Caches/BraveSoftware", "category": "System", "safety": "safe", "note": "Brave browser cache." },
   { "id": "google-chrome-support", "name": "Google app data", "path": "~/Library/Application Support/Google", "category": "System", "safety": "check", "note": "Chrome/Drive profile data and caches. Clearing may sign you out or remove offline files." },
   { "id": "mail-attachments", "name": "Mail attachments cache", "path": "~/Library/Mail/V10", "category": "System", "safety": "check", "note": "Mail.app downloaded attachments and cache. May re-download from server." },
-  { "id": "ios-backups", "name": "iOS device backups", "path": "~/Library/Application Support/MobileSync/Backup", "category": "System", "safety": "check", "note": "iPhone/iPad backups. Only remove backups you no longer need." },
-  { "id": "trash", "name": "Trash", "path": "~/.Trash", "category": "System", "safety": "safe", "note": "Files already marked for deletion. Emptying frees space immediately." }
+  { "id": "ios-backups", "name": "iOS device backups", "path": "~/Library/Application Support/MobileSync/Backup", "category": "System", "safety": "check", "note": "iPhone/iPad backups. Only remove backups you no longer need." }
 ]

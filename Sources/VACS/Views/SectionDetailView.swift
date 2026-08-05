@@ -14,6 +14,10 @@ struct SectionDetailView: View {
                     OverviewView()
                 } else if model.selectedSection == .installedApps {
                     InstalledAppsView()
+                } else if model.selectedSection == .installedPackages {
+                    InstalledPackagesView()
+                } else if model.selectedSection == .aiSkills {
+                    AISkillsView()
                 } else if model.selectedSection == .about {
                     AboutView()
                 } else if model.selectedSection == .trash {

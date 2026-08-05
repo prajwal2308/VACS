@@ -103,6 +103,39 @@ struct InstalledApp: Identifiable, Hashable {
     var sizeText: String { ByteText.string(totalBytes) }
 }
 
+/// CLI / package-manager install discovered by PackageFinderScanner.
+struct InstalledPackage: Identifiable, Hashable {
+    let id: String
+    let name: String
+    let source: String
+    let path: String
+    let sizeBytes: Int64
+    let detail: String
+    /// Terminal command to uninstall — copy and paste into Terminal.
+    let uninstallCommand: String?
+
+    var sizeText: String { ByteText.string(sizeBytes) }
+}
+
+enum AISkillKind: String, Hashable {
+    case skill = "Skill"
+    case mcp = "MCP config"
+    case extensionData = "Extension data"
+}
+
+/// Cursor/Codex skill folder or MCP config entry flagged for review.
+struct AISkillEntry: Identifiable, Hashable {
+    let id: String
+    let name: String
+    let path: String
+    let kind: AISkillKind
+    let issue: String?
+    let sizeBytes: Int64
+
+    var sizeText: String { ByteText.string(sizeBytes) }
+    var needsAttention: Bool { issue != nil }
+}
+
 /// What the right-hand detail panel is showing.
 enum DetailTarget: Equatable {
     case scanItem(ScanItem)

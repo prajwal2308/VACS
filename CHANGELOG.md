@@ -2,6 +2,25 @@
 
 All notable changes to VACS are documented here.
 
+## [0.1.2] — 2026-08-05
+
+### Added
+
+- **Installed Packages** finder — Homebrew, npm global, pip, PATH binaries
+- **AI & Skills** scanner — Cursor/Codex skills, MCP configs, stale/broken flags
+- **Copy** button on package rows — copies uninstall command (`pip uninstall torch`, etc.) for Terminal
+- Trash cleanup banner and prompt when Trash dominates reclaimable space
+
+### Changed
+
+- macOS Trash removed from System scan — managed only in Trash sidebar
+- Check-first items show red warnings (System category banner + chips)
+
+### Fixed
+
+- Overview not refreshing after move to Trash — empty categories drop off immediately
+- Stale Trash rows no longer re-prompt “Move to Trash” after deletion
+
 ## [0.1.1] — 2026-08-05
 
 ### Added
