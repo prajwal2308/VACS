@@ -4,19 +4,26 @@ struct SectionDetailView: View {
     @EnvironmentObject var model: AppModel
 
     var body: some View {
-        Group {
-            if model.selectedSection == .overview {
-                OverviewView()
-            } else if model.selectedSection == .installedApps {
-                InstalledAppsView()
-            } else if model.selectedSection == .about {
-                AboutView()
-            } else if model.selectedSection == .trash {
-                TrashView()
-            } else {
-                CategoryDetailView()
+        VStack(spacing: 0) {
+            if model.canNavigateBack {
+                SectionBackBar()
+            }
+
+            Group {
+                if model.selectedSection == .overview {
+                    OverviewView()
+                } else if model.selectedSection == .installedApps {
+                    InstalledAppsView()
+                } else if model.selectedSection == .about {
+                    AboutView()
+                } else if model.selectedSection == .trash {
+                    TrashView()
+                } else {
+                    CategoryDetailView()
+                }
             }
         }
+        .background(BackNavigationCapture())
         .id(model.selectedSection)
         .transition(.opacity)
         .animation(Theme.easeOut, value: model.selectedSection)

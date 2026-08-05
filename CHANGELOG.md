@@ -2,6 +2,26 @@
 
 All notable changes to VACS are documented here.
 
+## [0.1.1] — 2026-08-05
+
+### Added
+
+- Overview category chips sync with **Show more** selections (safe + check first)
+- **Deselect all** in category item sheet
+- **Uninstall** flow for Installed Apps (app only or complete)
+- Back navigation: ← Overview bar, swipe, Backspace, ⌘[
+- Auto-select safe items after full scan; tap chips to toggle on overview cards
+
+### Changed
+
+- Scan button uses primary pill style in category detail
+- Allowlist link opens GitHub rules.json in browser
+- Package.swift: Swift 5.9, bundled Resources
+
+### Fixed
+
+- Overview card not updating when selecting items in Show more dialog
+
 ## [0.1.0] — 2026-08-05
 
 ### Added

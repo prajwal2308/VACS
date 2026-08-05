@@ -20,6 +20,8 @@ enum Theme {
     static let heroSubtext = Color.white.opacity(0.58)
 
     static let safeGreen = Color(red: 0.20, green: 0.62, blue: 0.38)
+    static let checkAmber = Color(red: 0.85, green: 0.55, blue: 0.12)
+    static let dangerRed = Color(red: 0.78, green: 0.17, blue: 0.15)
 
     // Motion tokens (Emil-style — ease-out, under 300ms)
     static let easeOut = Animation.easeOut(duration: 0.16)
@@ -94,6 +96,20 @@ struct DestructivePillButtonStyle: ButtonStyle {
             .padding(.horizontal, 14)
             .padding(.vertical, 7)
             .background(Theme.navy.opacity(configuration.isPressed ? 0.82 : 0.92), in: Capsule())
+            .scaleEffect(configuration.isPressed ? 0.97 : 1)
+            .animation(Theme.easeOut, value: configuration.isPressed)
+    }
+}
+
+/// Red pill for uninstall — distinct from move-to-trash actions.
+struct UninstallPillButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .font(.system(size: 12, weight: .semibold))
+            .foregroundStyle(.white)
+            .padding(.horizontal, 12)
+            .padding(.vertical, 7)
+            .background(Theme.dangerRed.opacity(configuration.isPressed ? 0.82 : 1), in: Capsule())
             .scaleEffect(configuration.isPressed ? 0.97 : 1)
             .animation(Theme.easeOut, value: configuration.isPressed)
     }

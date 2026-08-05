@@ -62,28 +62,87 @@ final class AppModel: ObservableObject {
     }
 
     var overviewSelectedSafeBytes: Int64 {
-        overviewSelectedSections.reduce(0) { $0 + safeBytes(for: $1) }
-    }
-
-    var overviewVisibleSections: [VACSection] {
-        overviewRows.map(\.section)
+        items.filter { selection.contains($0.id) && $0.safety == .safe }
+            .reduce(0) { $0 + $1.sizeBytes }
     }
 
     var overviewSelectedCount: Int {
-        overviewVisibleSections.filter { overviewSelectedSections.contains($0) }.count
+        overviewVisibleSections.filter { selectedSafeBytes(in: $0) > 0 }.count
     }
 
     var overviewAllSelected: Bool {
         let visible = overviewVisibleSections
-        return !visible.isEmpty && visible.allSatisfy { overviewSelectedSections.contains($0) }
+        guard !visible.isEmpty else { return false }
+        return visible.allSatisfy { section in
+            let safe = safeItems(for: section)
+            return safe.isEmpty || safe.allSatisfy { selection.contains($0.id) }
+        }
     }
 
     func selectAllOverviewSections() {
-        overviewSelectedSections = Set(overviewVisibleSections)
+        for section in overviewVisibleSections {
+            selectAllSafe(in: section)
+        }
     }
 
     func deselectAllOverviewSections() {
-        overviewSelectedSections = []
+        for section in overviewVisibleSections {
+            deselectAllSafe(in: section)
+        }
+    }
+
+    func selectAllSafe(in section: VACSection) {
+        for item in safeItems(for: section) { selection.insert(item.id) }
+        if !safeItems(for: section).isEmpty {
+            overviewSelectedSections.insert(section)
+        }
+    }
+
+    func deselectAllSafe(in section: VACSection) {
+        for item in safeItems(for: section) { selection.remove(item.id) }
+        overviewSelectedSections.remove(section)
+    }
+
+    func deselectAllOverview(in section: VACSection) {
+        for item in items(for: section) where canToggleInOverview(item) {
+            selection.remove(item.id)
+        }
+        overviewSelectedSections.remove(section)
+    }
+
+    func toggleItemSelection(_ item: ScanItem) {
+        guard item.safety == .safe || item.safety == .check else { return }
+        if selection.contains(item.id) { selection.remove(item.id) }
+        else { selection.insert(item.id) }
+        if item.safety == .safe {
+            syncOverviewSection(forCategory: item.category)
+        }
+    }
+
+    func canToggleInOverview(_ item: ScanItem) -> Bool {
+        item.safety == .safe || item.safety == .check
+    }
+
+    func isItemSelected(_ item: ScanItem) -> Bool {
+        selection.contains(item.id)
+    }
+
+    func overviewSectionAllSafeSelected(_ section: VACSection) -> Bool {
+        let safe = safeItems(for: section)
+        return !safe.isEmpty && safe.allSatisfy { selection.contains($0.id) }
+    }
+
+    private func syncOverviewSection(forCategory category: String) {
+        guard let section = VACSection.section(forCategory: category) else { return }
+        if safeItems(for: section).contains(where: { selection.contains($0.id) }) {
+            overviewSelectedSections.insert(section)
+        } else {
+            overviewSelectedSections.remove(section)
+        }
+    }
+
+    var overviewVisibleSections: [VACSection] {
+        overviewRows.map(\.section)
     }
 
     func recordTrashReclaimed(_ bytes: Int64) {
@@ -125,11 +184,7 @@ final class AppModel: ObservableObject {
     }
 
     func requestCleanOverviewSelected() {
-        var targets: [ScanItem] = []
-        for section in overviewSelectedSections {
-            targets += items(for: section).filter { $0.safety == .safe }
-        }
-        requestTrash(targets)
+        requestTrash(items.filter { selection.contains($0.id) && $0.safety == .safe })
     }
 
     func requestCleanSelected(in section: VACSection) {
@@ -151,6 +206,23 @@ final class AppModel: ObservableObject {
         )
     }
 
+    func requestUninstall(appOnly: Bool) {
+        guard case .installedApp(let app) = detailTarget, !app.isSystemApp else { return }
+        let paths: Set<String> = appOnly
+            ? [app.appPath]
+            : Set(detailGroups.flatMap(\.entries).map(\.path))
+        guard !paths.isEmpty else { return }
+        let bytes = detailGroups.flatMap(\.entries)
+            .filter { paths.contains($0.path) }
+            .reduce(0) { $0 + $1.sizeBytes }
+        cleanPrompt = .uninstall(
+            appName: app.name,
+            paths: paths,
+            summary: "\(paths.count) items · \(ByteText.string(bytes))",
+            complete: !appOnly
+        )
+    }
+
     func cancelCleanPrompt() { cleanPrompt = nil }
 
     /// Run a confirmed clean — prompt is passed in so alert dismissal cannot clear it first.
@@ -163,6 +235,8 @@ final class AppModel: ObservableObject {
         case .scanItems(let targets, _):
             if await trashPaths(targets) > 0 { SystemSound.playMoveToTrash() }
         case .detailPaths(let paths, _):
+            if await executeTrashDetail(paths: paths) > 0 { SystemSound.playMoveToTrash() }
+        case .uninstall(_, let paths, _, _):
             if await executeTrashDetail(paths: paths) > 0 { SystemSound.playMoveToTrash() }
         case .permanentlyDeleteTrash(let paths, _):
             if await permanentlyDeleteTrashItems(paths) > 0 { SystemSound.playDeletePermanently() }
@@ -198,6 +272,26 @@ final class AppModel: ObservableObject {
         }
         if section == .trash {
             loadTrash()
+        }
+    }
+
+    /// Back from detail drill-down, otherwise return to Overview.
+    var canNavigateBack: Bool {
+        detailTarget != nil || selectedSection != .overview
+    }
+
+    var backNavigationTitle: String {
+        detailTarget != nil ? "Back" : "Overview"
+    }
+
+    func navigateBack() {
+        guard canNavigateBack else { return }
+        if detailTarget != nil {
+            closeDetail()
+            return
+        }
+        withAnimation(Theme.easeOut) {
+            selectedSection = .overview
         }
     }
 
@@ -330,6 +424,12 @@ final class AppModel: ObservableObject {
 
     func safeBytes(for section: VACSection) -> Int64 {
         items(for: section).filter { $0.safety == .safe }.reduce(0) { $0 + $1.sizeBytes }
+    }
+
+    func safeItems(for section: VACSection) -> [ScanItem] {
+        items(for: section)
+            .filter { $0.safety == .safe }
+            .sorted { $0.sizeBytes > $1.sizeBytes }
     }
 
     var overviewRows: [(section: VACSection, total: Int64, safe: Int64)] {
@@ -504,8 +604,17 @@ final class AppModel: ObservableObject {
         guard !trashed.isEmpty else { return 0 }
 
         // Refresh detail after trash
-        if case .installedApp = detailTarget {
-            loadInstalledApps()
+        if case .installedApp(let app) = detailTarget {
+            if trashed.contains(app.appPath) {
+                closeDetail()
+                loadInstalledApps()
+            } else {
+                reloadCurrentDetailView(selectAll: false)
+                detailSelectedPaths.subtract(trashed)
+            }
+            recordTrashReclaimed(reclaimed)
+            refreshDisk()
+            return trashed.count
         } else if case .scanItem(let item) = detailTarget {
             if let idx = items.firstIndex(where: { $0.id == item.id }) {
                 let old = items[idx]
@@ -677,6 +786,25 @@ final class AppModel: ObservableObject {
         items(for: section)
             .filter { selection.contains($0.id) && $0.safety == .safe }
             .reduce(0) { $0 + $1.sizeBytes }
+    }
+
+    func selectedCheckCount(in section: VACSection) -> Int {
+        items(for: section).filter { $0.safety == .check && selection.contains($0.id) }.count
+    }
+
+    /// Selected items first, then unselected safe — for overview card chips (max 4).
+    func overviewPreviewItems(for section: VACSection, limit: Int = 4) -> [ScanItem] {
+        let selected = items(for: section)
+            .filter { canToggleInOverview($0) && selection.contains($0.id) }
+            .sorted { $0.sizeBytes > $1.sizeBytes }
+        if selected.count >= limit { return Array(selected.prefix(limit)) }
+        let selectedIDs = Set(selected.map(\.id))
+        let filler = safeItems(for: section).filter { !selectedIDs.contains($0.id) }
+        return selected + filler.prefix(limit - selected.count)
+    }
+
+    func hasOverviewSelection(in section: VACSection) -> Bool {
+        items(for: section).contains { canToggleInOverview($0) && selection.contains($0.id) }
     }
 
     @discardableResult

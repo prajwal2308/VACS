@@ -120,6 +120,7 @@ enum CleanPrompt: Identifiable, Equatable {
     case detailPaths(paths: Set<String>, summary: String)
     case permanentlyDeleteTrash(paths: [String], summary: String)
     case emptyTrash(summary: String)
+    case uninstall(appName: String, paths: Set<String>, summary: String, complete: Bool)
 
     var id: String {
         switch self {
@@ -127,13 +128,15 @@ enum CleanPrompt: Identifiable, Equatable {
         case .detailPaths(let paths, _): return "detail:\(paths.sorted().joined())"
         case .permanentlyDeleteTrash(let paths, _): return "trash-del:\(paths.sorted().joined())"
         case .emptyTrash: return "trash-empty"
+        case .uninstall(_, let paths, _, let complete): return "uninstall:\(complete):\(paths.sorted().joined())"
         }
     }
 
     var summary: String {
         switch self {
         case .scanItems(_, let s), .detailPaths(_, let s),
-             .permanentlyDeleteTrash(_, let s), .emptyTrash(let s): return s
+             .permanentlyDeleteTrash(_, let s), .emptyTrash(let s),
+             .uninstall(_, _, let s, _): return s
         }
     }
 
@@ -141,6 +144,7 @@ enum CleanPrompt: Identifiable, Equatable {
         switch self {
         case .permanentlyDeleteTrash: return "Delete permanently?"
         case .emptyTrash: return "Empty Trash permanently?"
+        case .uninstall(let name, _, _, _): return "Uninstall \(name)?"
         default: return "Move to Trash?"
         }
     }
@@ -149,16 +153,42 @@ enum CleanPrompt: Identifiable, Equatable {
         switch self {
         case .emptyTrash: return "Empty Trash"
         case .permanentlyDeleteTrash: return "Delete Permanently"
+        case .uninstall: return "Move to Trash"
         default: return "Move to Trash"
         }
     }
 
     var alertMessage: String {
         switch self {
-        case .scanItems(_, let s):
-            return "Move \(s) to the Trash? You can restore them until you empty the Trash."
+        case .scanItems(let items, let s):
+            let lines = items.prefix(8).map { "• \($0.name) (\($0.sizeText))" }.joined(separator: "\n")
+            let tail = items.count > 8 ? "\n…and \(items.count - 8) more." : ""
+            return """
+            Move \(s) to the Trash?
+
+            \(lines)\(tail)
+
+            Only Safe to clean paths are included. You can restore until you empty the Trash.
+            """
         case .detailPaths(_, let s):
             return "Move \(s) to the Trash? You can restore them until you empty the Trash."
+        case .uninstall(_, _, let s, let complete):
+            if complete {
+                return """
+                Move \(s) to the Trash?
+
+                Removes the app plus containers, caches, preferences, and support files VACS found. This frees the most space.
+
+                You can Put Back from Trash until you empty it. Some apps lose all settings when support files are removed.
+                """
+            }
+            return """
+            Move \(s) to the Trash?
+
+            Removes only the .app bundle. Containers, caches, and preferences stay on disk — useful if you plan to reinstall.
+
+            You can Put Back from Trash until you empty it.
+            """
         case .permanentlyDeleteTrash(_, let s):
             return """
             \(s)

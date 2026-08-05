@@ -11,8 +11,10 @@ struct DetailPanelView: View {
     @Binding var selectedPaths: Set<String>
     let isLoading: Bool
     var showBack = true
+    var installedApp: InstalledApp?
 
     @EnvironmentObject var model: AppModel
+    @State private var showUninstallOptions = false
 
     private var allEntries: [FileEntry] { groups.flatMap(\.entries) }
     private var selectedEntries: [FileEntry] {
@@ -20,6 +22,10 @@ struct DetailPanelView: View {
     }
     private var selectedBytes: Int64 {
         selectedEntries.reduce(0) { $0 + $1.sizeBytes }
+    }
+
+    private var completeUninstallBytes: Int64 {
+        allEntries.reduce(0) { $0 + $1.sizeBytes }
     }
 
     private var displayTitle: String {
@@ -110,7 +116,31 @@ struct DetailPanelView: View {
                     .font(.caption.monospacedDigit())
                     .foregroundStyle(Theme.secondaryText)
             }
-            Spacer()
+
+            Spacer(minLength: 8)
+
+            if let app = installedApp, !app.isSystemApp {
+                Button { showUninstallOptions = true } label: {
+                    Label("Uninstall", systemImage: "trash")
+                }
+                .buttonStyle(UninstallPillButtonStyle())
+                .disabled(model.isCleaning || isLoading)
+                .confirmationDialog(
+                    "Uninstall \(app.name)?",
+                    isPresented: $showUninstallOptions,
+                    titleVisibility: .visible
+                ) {
+                    Button("Uninstall Completely (\(ByteText.string(completeUninstallBytes)))", role: .destructive) {
+                        model.requestUninstall(appOnly: false)
+                    }
+                    Button("App Only (\(app.sizeText))") {
+                        model.requestUninstall(appOnly: true)
+                    }
+                    Button("Cancel", role: .cancel) {}
+                } message: {
+                    Text("Complete removes containers, caches, and preferences. App only keeps your data if you plan to reinstall.")
+                }
+            }
         }
         .padding(16)
         .background(Theme.card)
