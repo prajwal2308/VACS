@@ -154,7 +154,7 @@ struct AboutView: View {
     private var actionList: some View {
         VStack(spacing: 8) {
             AboutActionRow(icon: "chevron.left.forwardslash.chevron.right", title: "View the full allowlist") {
-                revealAllowlist()
+                NSWorkspace.shared.open(AppInfo.allowlistURL)
             }
             AboutActionRow(icon: "ladybug", title: "Report a bug") {
                 NSWorkspace.shared.open(AppInfo.bugReportURL)
@@ -180,13 +180,6 @@ struct AboutView: View {
         }
         .padding(.top, 8)
         .padding(.bottom, 16)
-    }
-
-    private func revealAllowlist() {
-        let url = Bundle.main.bundleURL
-            .appendingPathComponent("Contents/Resources/rules.json")
-        guard FileManager.default.fileExists(atPath: url.path) else { return }
-        NSWorkspace.shared.activateFileViewerSelecting([url])
     }
 }
 

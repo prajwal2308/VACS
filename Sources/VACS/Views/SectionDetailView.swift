@@ -68,12 +68,17 @@ private struct CategoryDetailView: View {
             Button { model.scan(section: section) } label: {
                 HStack(spacing: 6) {
                     if isScanningThis {
-                        ProgressView().controlSize(.small)
+                        ProgressView()
+                            .controlSize(.small)
+                            .tint(.white)
+                    } else {
+                        Image(systemName: hasResults ? "arrow.clockwise" : "magnifyingglass")
+                            .font(.system(size: 11, weight: .semibold))
                     }
-                    Text(isScanningThis ? "Scanning…" : "Scan")
+                    Text(isScanningThis ? "Scanning…" : (hasResults ? "Rescan" : "Scan"))
                 }
             }
-            .buttonStyle(SecondaryOutlineButtonStyle())
+            .buttonStyle(PrimaryPillButtonStyle())
             .disabled(model.isScanning || model.isCleaning)
         }
         .padding(.horizontal, 12)
