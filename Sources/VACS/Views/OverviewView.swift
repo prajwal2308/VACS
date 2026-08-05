@@ -40,6 +40,11 @@ struct OverviewView: View {
 
             OverviewSelectionBar()
 
+            Text("Tap items to include or skip. Category checkbox selects all safe items in that group.")
+                .font(.caption)
+                .foregroundStyle(Theme.secondaryText)
+                .fixedSize(horizontal: false, vertical: true)
+
             LazyVGrid(
                 columns: [GridItem(.adaptive(minimum: 200, maximum: 280), spacing: 10)],
                 spacing: 10
@@ -50,14 +55,9 @@ struct OverviewView: View {
                         total: row.total,
                         safe: row.safe,
                         itemCount: model.itemCount(for: row.section),
-                        isSelected: Binding(
-                            get: { model.overviewSelectedSections.contains(row.section) },
-                            set: { on in
-                                if on { model.overviewSelectedSections.insert(row.section) }
-                                else { model.overviewSelectedSections.remove(row.section) }
-                            }
-                        ),
-                        onReview: { model.selectedSection = row.section }
+                        safeItems: model.safeItems(for: row.section),
+                        allItems: model.items(for: row.section),
+                        onReview: { model.selectSection(row.section) }
                     )
                 }
             }

@@ -93,7 +93,7 @@
 
   { "id": "user-caches", "name": "App caches", "path": "~/Library/Caches", "category": "System", "safety": "check", "note": "Shared cache folder for many apps. Mostly safe, but review before clearing everything." },
   { "id": "user-logs", "name": "App logs", "path": "~/Library/Logs", "category": "System", "safety": "safe", "note": "Application log files. Safe to clear." },
-  { "id": "chrome-cache", "name": "Chrome cache", "path": "~/Library/Caches/Google/Chrome", "category": "System", "safety": "safe", "note": "Google Chrome browser cache. Cleared from Chrome settings too." },
+  { "id": "chrome-cache", "name": "Chrome cache", "path": "~/Library/Caches/Google/Chrome", "category": "System", "safety": "safe", "note": "HTTP cache only — not profiles, passwords, or extensions. Those live in Application Support/Google (Check first)." },
   { "id": "firefox-cache", "name": "Firefox cache", "path": "~/Library/Caches/Firefox", "category": "System", "safety": "safe", "note": "Firefox browser cache." },
   { "id": "brave-cache", "name": "Brave cache", "path": "~/Library/Caches/BraveSoftware", "category": "System", "safety": "safe", "note": "Brave browser cache." },
   { "id": "google-chrome-support", "name": "Google app data", "path": "~/Library/Application Support/Google", "category": "System", "safety": "check", "note": "Chrome/Drive profile data and caches. Clearing may sign you out or remove offline files." },

@@ -144,7 +144,8 @@ struct InstalledAppsView: View {
                 icon: AppScanner.appIcon(for: app.appPath), systemIcon: nil,
                 groups: model.detailGroups,
                 selectedPaths: $model.detailSelectedPaths,
-                isLoading: model.isLoadingDetail
+                isLoading: model.isLoadingDetail,
+                installedApp: app
             )
         }
     }
