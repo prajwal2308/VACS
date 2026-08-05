@@ -11,10 +11,17 @@
 
 <p align="center">
   <a href="docs/INSTALL.md"><strong>Install guide</strong></a> ·
+  <a href="https://github.com/prajwal2308/VACS/releases"><strong>Download</strong></a> ·
   <a href="docs/COMPARISON.md">Comparison</a> ·
   <a href="SECURITY.md">Security</a> ·
   <a href="docs/PRIVACY.md">Privacy</a> ·
   <a href="SUPPORT.md">Support</a>
+</p>
+
+<p align="center">
+  <a href="https://github.com/prajwal2308/VACS/releases/latest"><img src="https://img.shields.io/github/v/release/prajwal2308/VACS?label=latest%20release" alt="Latest release" /></a>
+  <img src="https://img.shields.io/badge/platform-macOS%2014%2B-lightgrey" alt="macOS 14+" />
+  <img src="https://img.shields.io/badge/arch-arm64-blue" alt="Apple Silicon" />
 </p>
 
 ---
@@ -77,6 +84,20 @@ Filter pills: **All** · **Safe to clean** · **Check first**. Select-all bar on
 
 ## Quick start
 
+### Option A — Download (recommended)
+
+1. Go to **[Releases](https://github.com/prajwal2308/VACS/releases/latest)** and download `VACS-x.y.z.dmg`
+2. Open the DMG → drag **VACS.app** to **Applications**
+3. **First launch:** macOS may block unsigned apps — **right-click VACS → Open**, or run:
+   ```bash
+   xattr -cr /Applications/VACS.app
+   ```
+4. Grant **Full Disk Access** when prompted → run **Smart Scan** from Overview
+
+> Current builds are **ad-hoc signed**, not Apple-notarized. See [Code signing & notarization](#code-signing--notarization) below.
+
+### Option B — Build from source
+
 ```bash
 git clone https://github.com/prajwal2308/VACS.git
 cd VACS
@@ -109,6 +130,21 @@ The build uses plain `swiftc` (no Xcode project required). Self-test must pass:
 VACS self-test: OK (95 rules loaded)
 ```
 
+### Build a release DMG (maintainers)
+
+```bash
+./scripts/build-dmg.sh          # default version 0.1.0 → build/VACS-0.1.0.dmg
+./scripts/build-dmg.sh 0.2.0    # custom version tag
+```
+
+Then attach the DMG to a [GitHub Release](https://github.com/prajwal2308/VACS/releases):
+
+```bash
+gh release create v0.2.0 build/VACS-0.2.0.dmg \
+  --title "VACS 0.2.0" \
+  --notes-file CHANGELOG.md
+```
+
 ### Project layout
 
 ```
@@ -120,6 +156,7 @@ VACS/
 │   └── COMPARISON.md       # vs PureMac, Purge, ClearDisk, …
 ├── scripts/
 │   ├── build-app.sh        # Primary build (swiftc → VACS.app)
+│   ├── build-dmg.sh        # Build app + pack DMG for Releases
 │   └── generate-icon.swift
 ├── Sources/VACS/
 │   ├── Resources/rules.json
@@ -132,6 +169,34 @@ VACS/
 ├── SUPPORT.md
 └── CHANGELOG.md
 ```
+
+---
+
+## Code signing & notarization
+
+| | Current release | Fully notarized (future) |
+|---|---|---|
+| **Cost** | Free (ad-hoc sign) | **$99 USD/year** — [Apple Developer Program](https://developer.apple.com/programs/) |
+| **Gatekeeper** | User may need right-click → Open on first launch | Opens normally after download |
+| **Certificate** | None (`codesign -`) | **Developer ID Application** (from Apple) |
+| **Notarization** | Not submitted | Required for distribution outside Mac App Store |
+
+**Is notarization free?** No. Apple does not charge per notarization request, but you must enroll in the **Apple Developer Program ($99/year)** to get a Developer ID certificate and use Apple's `notarytool`. There is no free tier for shipping signed/notarized Mac apps to other people.
+
+Rough pipeline when you have a paid account:
+
+```bash
+# 1. Sign the app with Developer ID
+codesign --force --options runtime --sign "Developer ID Application: Your Name (TEAMID)" build/VACS.app
+
+# 2. Notarize (uploads to Apple, usually minutes)
+xcrun notarytool submit build/VACS-0.1.0.dmg --apple-id "you@email.com" --team-id TEAMID --password "@keychain:AC_PASSWORD" --wait
+
+# 3. Staple the ticket so offline Gatekeeper passes
+xcrun stapler staple build/VACS.app
+```
+
+Until then, ad-hoc builds from `./scripts/build-app.sh` or the [release DMG](https://github.com/prajwal2308/VACS/releases/latest) work fine for personal use and trusted testers — with the one-time Gatekeeper workaround in [Quick start](#quick-start).
 
 ---
 

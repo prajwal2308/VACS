@@ -1,8 +1,19 @@
 # Installation Guide
 
-VACS is distributed as source you build locally into `VACS.app`. There is no Mac App Store listing and no signed DMG release yet.
+VACS can be installed from a **GitHub Release DMG** (recommended) or built locally from source.
 
-## Requirements
+## Option A — Download the DMG
+
+1. Open **[Releases](https://github.com/prajwal2308/VACS/releases/latest)** and download `VACS-x.y.z.dmg`
+2. Open the DMG and drag **VACS.app** to **Applications**
+3. If macOS blocks launch: **right-click → Open**, or `xattr -cr /Applications/VACS.app`
+4. Continue with [Grant Full Disk Access](#grant-full-disk-access) below
+
+Current builds are ad-hoc signed, not Apple-notarized. See the README section **Code signing & notarization**.
+
+## Option B — Build from source
+
+### Requirements
 
 | Requirement | Notes |
 |-------------|-------|
@@ -11,14 +22,14 @@ VACS is distributed as source you build locally into `VACS.app`. There is no Mac
 | Full Disk Access | Required before any scan (see below) |
 | ~50 MB disk | For build artifacts |
 
-## Step 1 — Get the source
+### Step 1 — Get the source
 
 ```bash
 git clone https://github.com/prajwal2308/VACS.git
 cd VACS
 ```
 
-## Step 2 — Build
+### Step 2 — Build
 
 ```bash
 chmod +x scripts/build-app.sh
@@ -41,7 +52,7 @@ The script will:
 ./scripts/build-app.sh --run
 ```
 
-## Step 3 — Install to Applications (optional)
+### Step 3 — Install to Applications (optional)
 
 ```bash
 cp -R build/VACS.app /Applications/
@@ -49,7 +60,7 @@ cp -R build/VACS.app /Applications/
 
 Or drag `build/VACS.app` to `/Applications` in Finder.
 
-## Step 4 — Grant Full Disk Access
+## Grant Full Disk Access
 
 1. Open **VACS** — you'll see the Full Disk Access gate if not yet granted
 2. Click **Open System Settings**
