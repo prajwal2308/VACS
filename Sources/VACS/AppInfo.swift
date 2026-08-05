@@ -65,6 +65,10 @@ enum AppInfo {
 
     static var releasesURL: URL { repoURL.appendingPathComponent("releases") }
 
+    static var allowlistURL: URL {
+        repoURL.appending(path: "blob/main/Sources/VACS/Resources/rules.json")
+    }
+
     static let toolComparisons: [ToolComparisonRow] = [
         ToolComparisonRow(
             id: "puppeteer",
