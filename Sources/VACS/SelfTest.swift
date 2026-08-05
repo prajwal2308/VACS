@@ -36,6 +36,7 @@ enum SelfTest {
             check(r.command != nil, "command rule missing command: \(r.id)")
         }
         check(Set(rules.map(\.id)).count == rules.count, "duplicate rule ids")
+        check(!rules.contains { $0.id == "trash" }, "trash rule must not be in rules.json — use Trash sidebar")
 
         if failures.isEmpty {
             print("VACS self-test: OK (\(rules.count) rules loaded)")

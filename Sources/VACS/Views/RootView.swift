@@ -54,6 +54,12 @@ struct RootView: View {
             OnboardingSheetView()
                 .environmentObject(model)
         }
+        .alert("Clean up Trash", isPresented: $model.showTrashCleanupPrompt) {
+            Button("Review Trash") { model.goToTrashCleanup() }
+            Button("Not now", role: .cancel) { model.dismissTrashCleanupPrompt() }
+        } message: {
+            Text("Your Trash holds \(ByteText.storage(model.trashTotalBytes)) — more than all other safe scan results. Empty Trash to reclaim that space.")
+        }
     }
 
     private func updateColumns(width: CGFloat) {

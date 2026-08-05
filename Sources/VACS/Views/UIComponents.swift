@@ -339,7 +339,6 @@ struct CategoryReviewCard: View {
         .sheet(isPresented: $showAllItems) {
             CategoryItemsSheet(
                 section: section,
-                items: allItems,
                 onReview: {
                     showAllItems = false
                     onReview()
@@ -404,21 +403,22 @@ struct CategoryItemsSheet: View {
     @EnvironmentObject var model: AppModel
 
     let section: VACSection
-    let items: [ScanItem]
     let onReview: () -> Void
 
     @Environment(\.dismiss) private var dismiss
 
+    private var liveItems: [ScanItem] { model.items(for: section) }
+
     private var safeSelectedCount: Int {
-        items.filter { $0.safety == .safe && model.isItemSelected($0) }.count
+        liveItems.filter { $0.safety == .safe && model.isItemSelected($0) }.count
     }
 
     private var checkMarkedCount: Int {
-        items.filter { $0.safety == .check && model.isItemSelected($0) }.count
+        liveItems.filter { $0.safety == .check && model.isItemSelected($0) }.count
     }
 
     private var toggleableSelectedCount: Int {
-        items.filter { model.canToggleInOverview($0) && model.isItemSelected($0) }.count
+        liveItems.filter { model.canToggleInOverview($0) && model.isItemSelected($0) }.count
     }
 
     var body: some View {
@@ -464,7 +464,7 @@ struct CategoryItemsSheet: View {
                         }
                     }
 
-                    ForEach(items) { item in
+                    ForEach(liveItems) { item in
                         CategorySheetItemRow(
                             item: item,
                             included: model.isItemSelected(item),
@@ -491,7 +491,7 @@ struct CategoryItemsSheet: View {
     }
 
     private var subtitleText: String {
-        var parts = ["\(items.count) items", "\(safeSelectedCount) safe for clean"]
+        var parts = ["\(liveItems.count) items", "\(safeSelectedCount) safe for clean"]
         if checkMarkedCount > 0 {
             parts.append("\(checkMarkedCount) check first marked")
         }
@@ -537,7 +537,7 @@ struct CategorySheetItemRow: View {
                 }
                 Text(item.note)
                     .font(.system(size: 11))
-                    .foregroundStyle(Theme.secondaryText)
+                    .foregroundStyle(item.safety == .check || item.safety == .command ? Theme.dangerRed : Theme.secondaryText)
                     .fixedSize(horizontal: false, vertical: true)
                 Text(item.path)
                     .font(.system(size: 10).monospaced())

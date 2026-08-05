@@ -38,6 +38,18 @@ final class AppModel: ObservableObject {
     @Published var isLoadingApps = false
     @Published var appSearchQuery = ""
 
+    /// CLI / package-manager installs (Package finder).
+    @Published var installedPackages: [InstalledPackage] = []
+    @Published var installedPackagesLoaded = false
+    @Published var isLoadingPackages = false
+    @Published var packageSearchQuery = ""
+
+    /// Cursor skills, MCP configs (AI & Skills).
+    @Published var aiSkillEntries: [AISkillEntry] = []
+    @Published var aiSkillsLoaded = false
+    @Published var isLoadingAISkills = false
+    @Published var aiSkillsSearchQuery = ""
+
     /// macOS Trash (~/.Trash) — browse, restore, or permanently delete.
     @Published var trashItems: [TrashItem] = []
     @Published var trashRestoreNotice: String?
@@ -45,6 +57,11 @@ final class AppModel: ObservableObject {
     @Published var isLoadingTrash = false
     @Published var trashTotalBytes: Int64 = 0
     @Published var trashLoaded = false
+
+    /// Prompt user to empty Trash when it dominates reclaimable space.
+    @Published var showTrashCleanupPrompt = false
+    @Published var trashCleanupDismissed = false
+    private var trashCleanupAlertShown = false
 
     /// Category cards selected on Overview (PureMac Smart Care).
     @Published var overviewSelectedSections: Set<VACSection> = []
@@ -55,7 +72,51 @@ final class AppModel: ObservableObject {
     private let scanner = Scanner(rules: Scanner.loadRules())
     private let permission = PermissionChecker()
 
+    /// Show trash cleanup nudge when Trash holds more than this (500 MB).
+    static let trashCleanupThreshold: Int64 = 524_288_000
+
     var ruleCount: Int { scanner.rules.count }
+
+    /// Trash is large and exceeds all other safe-to-clean scan results combined.
+    var trashDominatesReclaimable: Bool {
+        trashTotalBytes >= Self.trashCleanupThreshold && trashTotalBytes > reclaimableSafe
+    }
+
+    var shouldShowTrashCleanupBanner: Bool {
+        !trashCleanupDismissed && trashDominatesReclaimable
+    }
+
+    var filteredInstalledPackages: [InstalledPackage] {
+        let q = packageSearchQuery.trimmingCharacters(in: .whitespaces).lowercased()
+        var list = installedPackages
+        if !q.isEmpty {
+            list = list.filter {
+                $0.name.lowercased().contains(q) ||
+                $0.source.lowercased().contains(q) ||
+                $0.detail.lowercased().contains(q)
+            }
+        }
+        switch sortOrder {
+        case .largest: return list.sorted { $0.sizeBytes > $1.sizeBytes }
+        case .name: return list.sorted { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
+        }
+    }
+
+    var filteredAISkillEntries: [AISkillEntry] {
+        let q = aiSkillsSearchQuery.trimmingCharacters(in: .whitespaces).lowercased()
+        var list = aiSkillEntries
+        if !q.isEmpty {
+            list = list.filter {
+                $0.name.lowercased().contains(q) ||
+                $0.kind.rawValue.lowercased().contains(q) ||
+                ($0.issue?.lowercased().contains(q) ?? false)
+            }
+        }
+        switch sortOrder {
+        case .largest: return list.sorted { $0.sizeBytes > $1.sizeBytes }
+        case .name: return list.sorted { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
+        }
+    }
 
     var reclaimableSafe: Int64 {
         items.filter { $0.safety == .safe }.reduce(0) { $0 + $1.sizeBytes }
@@ -165,11 +226,12 @@ final class AppModel: ObservableObject {
     // MARK: - Trash confirmation (always prompt before moving to Trash)
 
     func requestTrash(_ targets: [ScanItem]) {
-        guard !targets.isEmpty else { return }
-        let bytes = targets.reduce(0) { $0 + $1.sizeBytes }
+        let valid = sanitizedTrashTargets(targets)
+        guard !valid.isEmpty else { return }
+        let bytes = valid.reduce(0) { $0 + $1.sizeBytes }
         cleanPrompt = .scanItems(
-            targets,
-            summary: "\(targets.count) items · \(ByteText.string(bytes))"
+            valid,
+            summary: "\(valid.count) items · \(ByteText.string(bytes))"
         )
     }
 
@@ -243,6 +305,9 @@ final class AppModel: ObservableObject {
         case .emptyTrash:
             if await emptyTrash() > 0 { SystemSound.playDeletePermanently() }
         }
+        pruneEmptySections()
+        purgeStaleTrashScanItems()
+        evaluateTrashCleanupPrompt()
     }
 
     func confirmCleanPrompt() async {
@@ -258,6 +323,7 @@ final class AppModel: ObservableObject {
         let d = DiskInfo.homeVolume()
         freeBytes = d.free
         totalBytes = d.total
+        purgeStaleTrashScanItems()
         refreshTrashSummary()
     }
 
@@ -270,9 +336,26 @@ final class AppModel: ObservableObject {
         if section == .installedApps && !installedAppsLoaded {
             loadInstalledApps()
         }
+        if section == .installedPackages && !installedPackagesLoaded {
+            loadInstalledPackages()
+        }
+        if section == .aiSkills && !aiSkillsLoaded {
+            loadAISkills()
+        }
         if section == .trash {
             loadTrash()
         }
+    }
+
+    func goToTrashCleanup() {
+        trashCleanupDismissed = false
+        showTrashCleanupPrompt = false
+        selectSection(.trash)
+    }
+
+    func dismissTrashCleanupPrompt() {
+        trashCleanupDismissed = true
+        showTrashCleanupPrompt = false
     }
 
     /// Back from detail drill-down, otherwise return to Overview.
@@ -435,7 +518,7 @@ final class AppModel: ObservableObject {
     var overviewRows: [(section: VACSection, total: Int64, safe: Int64)] {
         VACSection.scannable.map { s in
             (s, totalBytes(for: s), safeBytes(for: s))
-        }.filter { $0.total > 0 || scannedSections.contains($0.section) }
+        }.filter { $0.total > 0 }
     }
 
     /// Live count while scan streams results (not only after scan finishes).
@@ -467,6 +550,32 @@ final class AppModel: ObservableObject {
                 self.installedApps = apps
                 self.installedAppsLoaded = true
                 self.isLoadingApps = false
+            }
+        }
+    }
+
+    func loadInstalledPackages() {
+        guard !isLoadingPackages else { return }
+        isLoadingPackages = true
+        Task.detached(priority: .userInitiated) {
+            let packages = PackageFinderScanner.scan()
+            await MainActor.run {
+                self.installedPackages = packages
+                self.installedPackagesLoaded = true
+                self.isLoadingPackages = false
+            }
+        }
+    }
+
+    func loadAISkills() {
+        guard !isLoadingAISkills else { return }
+        isLoadingAISkills = true
+        Task.detached(priority: .userInitiated) {
+            let entries = AISkillsScanner.scan()
+            await MainActor.run {
+                self.aiSkillEntries = entries
+                self.aiSkillsLoaded = true
+                self.isLoadingAISkills = false
             }
         }
     }
@@ -638,7 +747,9 @@ final class AppModel: ObservableObject {
         reloadCurrentDetailView(selectAll: false)
         detailSelectedPaths.subtract(trashed)
         recordTrashReclaimed(reclaimed)
+        pruneEmptySections()
         refreshDisk()
+        scheduleTrashRefresh()
         return trashed.count
     }
 
@@ -686,6 +797,54 @@ final class AppModel: ObservableObject {
             self.isScanning = false
             self.scanningSection = nil
             self.refreshDisk()
+            self.purgeStaleTrashScanItems()
+            self.pruneEmptySections()
+            self.evaluateTrashCleanupPrompt()
+        }
+    }
+
+    /// Drop ~/.Trash scan rows if they linger from an older rules.json.
+    private func purgeStaleTrashScanItems() {
+        let trashDir = TrashScanner.trashDirectory
+        let staleIDs = items.filter {
+            $0.id == "trash" || $0.path == trashDir || $0.path.hasPrefix(trashDir + "/")
+        }.map(\.id)
+        guard !staleIDs.isEmpty else { return }
+        items.removeAll { staleIDs.contains($0.id) }
+        selection.subtract(staleIDs)
+        if let system = VACSection.section(forCategory: "System") {
+            if totalBytes(for: system) == 0 { scannedSections.remove(system) }
+        }
+    }
+
+    private func pruneEmptySections() {
+        scannedSections = scannedSections.filter { totalBytes(for: $0) > 0 }
+        overviewSelectedSections = overviewSelectedSections.filter { totalBytes(for: $0) > 0 }
+    }
+
+    private func sanitizedTrashTargets(_ targets: [ScanItem]) -> [ScanItem] {
+        let fm = FileManager.default
+        let trashDir = TrashScanner.trashDirectory
+        return targets.filter { item in
+            item.id != "trash" &&
+            !item.path.hasPrefix(trashDir + "/") &&
+            item.path != trashDir &&
+            fm.fileExists(atPath: item.path)
+        }
+    }
+
+    private func evaluateTrashCleanupPrompt() {
+        guard trashDominatesReclaimable, !trashCleanupDismissed, !trashCleanupAlertShown else { return }
+        trashCleanupAlertShown = true
+        showTrashCleanupPrompt = true
+    }
+
+    private func scheduleTrashRefresh() {
+        refreshTrashSummary()
+        Task {
+            try? await Task.sleep(nanoseconds: 600_000_000)
+            await MainActor.run { self.refreshTrashSummary() }
+            if self.selectedSection == .trash { self.loadTrash() }
         }
     }
 
@@ -809,8 +968,9 @@ final class AppModel: ObservableObject {
 
     @discardableResult
     private func trashPaths(_ targets: [ScanItem]) async -> Int {
-        guard !targets.isEmpty else { return 0 }
-        let urls = targets.map { URL(fileURLWithPath: $0.path) }
+        let valid = sanitizedTrashTargets(targets)
+        guard !valid.isEmpty else { return 0 }
+        let urls = valid.map { URL(fileURLWithPath: $0.path) }
 
         let mapping: [URL: URL] = await withCheckedContinuation { cont in
             NSWorkspace.shared.recycle(urls) { result, _ in
@@ -820,14 +980,15 @@ final class AppModel: ObservableObject {
         TrashOriginStore.recordRecycleResult(mapping)
         let trashed = Set(mapping.keys.map(\.path))
 
-        let removedIDs = Set(targets.filter { trashed.contains($0.path) }.map(\.id))
+        let removedIDs = Set(valid.filter { trashed.contains($0.path) }.map(\.id))
         guard !removedIDs.isEmpty else { return 0 }
-        let reclaimed = targets.filter { removedIDs.contains($0.id) }.reduce(0) { $0 + $1.sizeBytes }
+        let reclaimed = valid.filter { removedIDs.contains($0.id) }.reduce(0) { $0 + $1.sizeBytes }
         items.removeAll { removedIDs.contains($0.id) }
         selection.subtract(removedIDs)
         recordTrashReclaimed(reclaimed)
+        pruneEmptySections()
         refreshDisk()
-        refreshTrashSummary()
+        scheduleTrashRefresh()
         return removedIDs.count
     }
 }

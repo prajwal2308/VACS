@@ -30,7 +30,7 @@ enum Theme {
     static func tint(for safety: Safety) -> Color {
         switch safety {
         case .safe: return safeGreen
-        case .check, .command: return secondaryText
+        case .check, .command: return dangerRed
         case .never: return tertiaryText
         }
     }
@@ -220,16 +220,22 @@ struct SectionIconBadge: View {
 
 struct SafetyChip: View {
     let safety: Safety
+
+    private var chipColor: Color {
+        switch safety {
+        case .safe: return Theme.safeGreen
+        case .check, .command: return Theme.dangerRed
+        case .never: return Theme.secondaryText
+        }
+    }
+
     var body: some View {
         Text(safety.label.uppercased())
             .font(.system(size: 9, weight: .bold))
             .tracking(0.3)
-            .foregroundStyle(safety == .safe ? Theme.safeGreen : Theme.secondaryText)
+            .foregroundStyle(chipColor)
             .padding(.horizontal, 7)
             .padding(.vertical, 2)
-            .background(
-                (safety == .safe ? Theme.safeGreen : Theme.secondaryText).opacity(0.10),
-                in: Capsule()
-            )
+            .background(chipColor.opacity(0.10), in: Capsule())
     }
 }

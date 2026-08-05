@@ -105,6 +105,8 @@ struct Scanner {
             subset = rules
         }
         for rule in subset {
+            // macOS Trash is managed in the Trash sidebar — never scan it as System cruft.
+            if rule.id == "trash" { continue }
             let abs = PathUtil.expand(rule.path)
             guard FileManager.default.fileExists(atPath: abs) else { continue }
             let bytes = rule.id == "docker-desktop" ? Shell.allocatedSize(abs) : Shell.size(abs)

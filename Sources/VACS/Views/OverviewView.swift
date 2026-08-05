@@ -19,6 +19,10 @@ struct OverviewView: View {
 
                 SmartCareHero(hasScanResults: hasResults)
 
+                if model.shouldShowTrashCleanupBanner {
+                    TrashCleanupBanner()
+                }
+
                 if hasResults {
                     reviewSection
                 } else if model.isScanning && model.scanningSection == nil {
@@ -91,5 +95,47 @@ struct OverviewView: View {
         .frame(maxWidth: .infinity)
         .padding(.vertical, 24)
         .elevatedCard()
+    }
+}
+
+struct TrashCleanupBanner: View {
+    @EnvironmentObject var model: AppModel
+
+    var body: some View {
+        HStack(alignment: .center, spacing: 12) {
+            Image(systemName: "trash.fill")
+                .font(.system(size: 20, weight: .medium))
+                .foregroundStyle(Theme.dangerRed)
+
+            VStack(alignment: .leading, spacing: 3) {
+                Text("Clean up Trash")
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundStyle(Theme.primaryText)
+                Text("Your Trash holds \(ByteText.storage(model.trashTotalBytes)) — more than all other safe items combined. Empty Trash to free space.")
+                    .font(.caption)
+                    .foregroundStyle(Theme.secondaryText)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+
+            Spacer(minLength: 8)
+
+            Button("Review Trash") { model.goToTrashCleanup() }
+                .buttonStyle(PrimaryPillButtonStyle())
+
+            Button {
+                model.dismissTrashCleanupPrompt()
+            } label: {
+                Image(systemName: "xmark")
+                    .font(.system(size: 11, weight: .semibold))
+                    .foregroundStyle(Theme.secondaryText)
+            }
+            .buttonStyle(.plain)
+        }
+        .padding(12)
+        .elevatedCard(radius: 10)
+        .overlay(
+            RoundedRectangle(cornerRadius: 10, style: .continuous)
+                .strokeBorder(Theme.dangerRed.opacity(0.22), lineWidth: 1)
+        )
     }
 }

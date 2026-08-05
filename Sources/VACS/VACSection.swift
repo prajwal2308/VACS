@@ -4,6 +4,8 @@ import SwiftUI
 enum VACSection: String, CaseIterable, Identifiable {
     case overview = "Overview"
     case installedApps = "Installed Apps"
+    case installedPackages = "Installed Packages"
+    case aiSkills = "AI & Skills"
     case developer = "Developer"
     case packageManagers = "Package Managers"
     case browserAutomation = "Browser Automation"
@@ -20,7 +22,7 @@ enum VACSection: String, CaseIterable, Identifiable {
     /// Maps to the `category` field in rules.json (or discovery bucket).
     var ruleCategory: String? {
         switch self {
-        case .overview, .installedApps, .about, .trash: return nil
+        case .overview, .installedApps, .installedPackages, .aiSkills, .about, .trash: return nil
         case .heavyFolders: return "Unknown heavy folders"
         default: return rawValue
         }
@@ -30,6 +32,8 @@ enum VACSection: String, CaseIterable, Identifiable {
         switch self {
         case .overview: return "chart.pie.fill"
         case .installedApps: return "app.badge.fill"
+        case .installedPackages: return "shippingbox.fill"
+        case .aiSkills: return "brain.head.profile"
         case .developer: return "chevron.left.forwardslash.chevron.right"
         case .packageManagers: return "archivebox.fill"
         case .browserAutomation: return "globe.americas.fill"
@@ -47,6 +51,8 @@ enum VACSection: String, CaseIterable, Identifiable {
         switch self {
         case .overview: return "Disk usage and reclaimable space at a glance."
         case .installedApps: return "See every file an app dropped on your Mac — caches, containers, preferences."
+        case .installedPackages: return "CLI tools and package-manager installs you may have forgotten — Homebrew, npm, pip, and PATH binaries."
+        case .aiSkills: return "Cursor skills, MCP server configs, and extension folders — flag missing or stale entries."
         case .developer: return "Xcode, simulators, IDE caches, and build artifacts."
         case .packageManagers: return "npm, Homebrew, pip, Cargo, Gradle, and other package caches."
         case .browserAutomation: return "Puppeteer, Playwright, and Selenium browser downloads."
@@ -61,12 +67,15 @@ enum VACSection: String, CaseIterable, Identifiable {
     }
 
     static var scannable: [VACSection] {
-        allCases.filter { $0 != .overview && $0 != .installedApps && $0 != .about && $0 != .trash }
+        allCases.filter {
+            $0 != .overview && $0 != .installedApps && $0 != .installedPackages
+                && $0 != .aiSkills && $0 != .about && $0 != .trash
+        }
     }
 
     /// PureMac “Advanced Tools” equivalents — shown as a sidebar subgroup under Cleanup.
     static var advancedTools: [VACSection] {
-        [.developer, .packageManagers, .browserAutomation, .containers, .aiTools]
+        [.aiSkills, .developer, .packageManagers, .browserAutomation, .containers, .aiTools]
     }
 
     static var generalCleanup: [VACSection] {

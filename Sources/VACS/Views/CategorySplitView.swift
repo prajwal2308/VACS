@@ -32,6 +32,9 @@ struct CategorySplitView: View {
     private var listPane: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 10) {
+                if section == .system, model.items(for: section).contains(where: { $0.safety == .check }) {
+                    CheckFirstWarningBanner()
+                }
                 filterBar
                 if rows.isEmpty {
                     Text("No items match this filter.")
@@ -121,7 +124,10 @@ struct SelectableItemRow: View {
                     Text(item.name).font(.system(size: 13, weight: .medium))
                     SafetyChip(safety: item.safety)
                 }
-                Text(item.note).font(.system(size: 11)).foregroundStyle(Theme.secondaryText).lineLimit(1)
+                Text(item.note)
+                    .font(.system(size: 11))
+                    .foregroundStyle(item.safety == .check || item.safety == .command ? Theme.dangerRed : Theme.secondaryText)
+                    .lineLimit(item.safety == .check ? 2 : 1)
                 Text(item.path).font(.system(size: 9.5).monospaced()).foregroundStyle(Theme.tertiaryText).lineLimit(1)
             }
 
@@ -137,5 +143,27 @@ struct SelectableItemRow: View {
         .contentShape(Rectangle())
         .onTapGesture { onSelect() }
         .onHover { hovering = $0 }
+    }
+}
+
+/// Red banner for System / Library paths that may break profiles or app behavior.
+struct CheckFirstWarningBanner: View {
+    var body: some View {
+        HStack(alignment: .top, spacing: 8) {
+            Image(systemName: "exclamationmark.triangle.fill")
+                .foregroundStyle(Theme.dangerRed)
+                .font(.system(size: 12))
+            Text("Check first items may sign you out, delete profiles, or change app behavior. Read each note before removing.")
+                .font(.system(size: 11, weight: .medium))
+                .foregroundStyle(Theme.dangerRed)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .padding(.horizontal, 10)
+        .padding(.vertical, 8)
+        .background(Theme.dangerRed.opacity(0.08), in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 8, style: .continuous)
+                .strokeBorder(Theme.dangerRed.opacity(0.25), lineWidth: 1)
+        )
     }
 }
