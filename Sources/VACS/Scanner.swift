@@ -114,7 +114,8 @@ struct Scanner {
             onItem(ScanItem(
                 id: rule.id, name: rule.name, path: abs, category: rule.category,
                 safety: rule.safety, note: rule.note, command: rule.command,
-                sizeBytes: bytes, known: true
+                sizeBytes: bytes, known: true,
+                modifiedAt: modificationDate(at: abs)
             ))
         }
     }
@@ -145,6 +146,10 @@ struct Scanner {
             return true
         }
         return false
+    }
+
+    private func modificationDate(at path: String) -> Date? {
+        try? FileManager.default.attributesOfItem(atPath: path)[.modificationDate] as? Date
     }
 }
 

@@ -5,22 +5,9 @@ struct SidebarView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            HStack(spacing: 10) {
-                AppMark(size: 26)
-                VStack(alignment: .leading, spacing: 1) {
-                    Text("VACS")
-                        .font(.system(size: 14, weight: .bold))
-                    Text("\(model.ruleCount) paths")
-                        .font(.system(size: 10))
-                        .foregroundStyle(Theme.secondaryText)
-                }
-                Spacer(minLength: 0)
-            }
-            .padding(.horizontal, 12)
-            .padding(.top, 12)
-            .padding(.bottom, 6)
+            header
 
-            ScrollView {
+            ScrollView(.vertical, showsIndicators: true) {
                 VStack(alignment: .leading, spacing: 2) {
                     sectionHeader("Overview")
                     SidebarNavRow(section: .overview)
@@ -44,14 +31,32 @@ struct SidebarView: View {
                     SidebarNavRow(section: .about)
                 }
                 .padding(.horizontal, 8)
-                .padding(.bottom, 8)
+                .padding(.bottom, 12)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .layoutPriority(1)
 
             SidebarStorageCard()
         }
-        .frame(maxHeight: .infinity)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Theme.elevated)
+    }
+
+    private var header: some View {
+        HStack(spacing: 10) {
+            AppMark(size: 26)
+            VStack(alignment: .leading, spacing: 1) {
+                Text("VACS")
+                    .font(.system(size: 14, weight: .bold))
+                Text("\(model.ruleCount) paths")
+                    .font(.system(size: 10))
+                    .foregroundStyle(Theme.secondaryText)
+            }
+            Spacer(minLength: 0)
+        }
+        .padding(.horizontal, 12)
+        .padding(.top, 12)
+        .padding(.bottom, 6)
     }
 
     private func sectionHeader(_ title: String, subtle: Bool = false) -> some View {
@@ -87,12 +92,15 @@ private struct SidebarNavRow: View {
                     .font(.system(size: 13, weight: isSelected ? .semibold : .regular))
                     .foregroundStyle(isSelected ? Theme.primaryText : Theme.secondaryText)
                     .lineLimit(1)
+                    .minimumScaleFactor(0.85)
 
                 Spacer(minLength: 4)
 
                 badgeText
                     .font(.system(size: 10, weight: .medium).monospacedDigit())
                     .foregroundStyle(Theme.secondaryText)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.8)
             }
             .padding(.horizontal, 8)
             .padding(.vertical, 7)

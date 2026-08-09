@@ -77,13 +77,19 @@ final class AppModel: ObservableObject {
 
     var ruleCount: Int { scanner.rules.count }
 
-    /// Trash is large and exceeds all other safe-to-clean scan results combined.
-    var trashDominatesReclaimable: Bool {
-        trashTotalBytes >= Self.trashCleanupThreshold && trashTotalBytes > reclaimableSafe
+    /// Trash holds enough space to warrant a cleanup nudge (500 MB+).
+    var trashIsLarge: Bool {
+        trashTotalBytes >= Self.trashCleanupThreshold
     }
 
+    /// Trash exceeds all other safe-to-clean scan results — highlight in sidebar.
+    var trashDominatesReclaimable: Bool {
+        trashIsLarge && trashTotalBytes > reclaimableSafe
+    }
+
+    /// Sticky until the user dismisses — survives rescan.
     var shouldShowTrashCleanupBanner: Bool {
-        !trashCleanupDismissed && trashDominatesReclaimable
+        !trashCleanupDismissed && trashIsLarge
     }
 
     var filteredInstalledPackages: [InstalledPackage] {
@@ -211,6 +217,12 @@ final class AppModel: ObservableObject {
         lastCleanedBytes += bytes
         lifetimeTrashedBytes += bytes
         UserDefaults.standard.set(String(lifetimeTrashedBytes), forKey: "lifetimeTrashedBytes")
+    }
+
+    /// Permanent delete from Trash — disk space freed; don't add to lifetime again.
+    private func recordPermanentlyFreed(_ bytes: Int64) {
+        guard bytes > 0 else { return }
+        lastCleanedBytes += bytes
     }
 
     func itemCount(for section: VACSection) -> Int {
@@ -477,7 +489,7 @@ final class AppModel: ObservableObject {
         trashSelection.subtract(paths)
         trashItems.removeAll { paths.contains($0.id) }
         trashTotalBytes = TrashScanner.totalBytes(in: trashItems)
-        if bytes > 0 { recordTrashReclaimed(bytes) }
+        if bytes > 0 { recordPermanentlyFreed(bytes) }
         refreshDisk()
         return bytes > 0 ? paths.count : 0
     }
@@ -733,7 +745,8 @@ final class AppModel: ObservableObject {
                         id: old.id, name: old.name, path: old.path,
                         category: old.category, safety: old.safety,
                         note: old.note, command: old.command,
-                        sizeBytes: newSize, known: old.known
+                        sizeBytes: newSize, known: old.known,
+                        modifiedAt: old.modifiedAt
                     )
                 } else {
                     items.remove(at: idx)
@@ -812,14 +825,15 @@ final class AppModel: ObservableObject {
         guard !staleIDs.isEmpty else { return }
         items.removeAll { staleIDs.contains($0.id) }
         selection.subtract(staleIDs)
-        if let system = VACSection.section(forCategory: "System") {
-            if totalBytes(for: system) == 0 { scannedSections.remove(system) }
-        }
     }
 
     private func pruneEmptySections() {
-        scannedSections = scannedSections.filter { totalBytes(for: $0) > 0 }
+        // Keep scannedSections — marks "this category was scanned" even when empty or fully cleaned.
         overviewSelectedSections = overviewSelectedSections.filter { totalBytes(for: $0) > 0 }
+    }
+
+    func hasScanned(_ section: VACSection) -> Bool {
+        scannedSections.contains(section)
     }
 
     private func sanitizedTrashTargets(_ targets: [ScanItem]) -> [ScanItem] {
@@ -834,7 +848,7 @@ final class AppModel: ObservableObject {
     }
 
     private func evaluateTrashCleanupPrompt() {
-        guard trashDominatesReclaimable, !trashCleanupDismissed, !trashCleanupAlertShown else { return }
+        guard trashIsLarge, !trashCleanupDismissed, !trashCleanupAlertShown else { return }
         trashCleanupAlertShown = true
         showTrashCleanupPrompt = true
     }
