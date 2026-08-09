@@ -660,3 +660,50 @@ struct SafetyFilterPills: View {
         }
     }
 }
+
+// MARK: - Centered tab search (discovery views)
+
+struct CenteredTabSearchField: View {
+    let placeholder: String
+    @Binding var text: String
+
+    var body: some View {
+        HStack(spacing: 6) {
+            Image(systemName: "magnifyingglass")
+                .font(.system(size: 11, weight: .medium))
+                .foregroundStyle(Theme.tertiaryText)
+            TextField(placeholder, text: $text)
+                .textFieldStyle(.plain)
+                .font(.system(size: 12))
+        }
+        .padding(.horizontal, 14)
+        .padding(.vertical, 7)
+        .frame(maxWidth: 280)
+        .background(Theme.card, in: Capsule(style: .continuous))
+        .overlay(
+            Capsule(style: .continuous)
+                .strokeBorder(Theme.hairline.opacity(0.82), lineWidth: 1)
+        )
+    }
+}
+
+struct TabHeaderWithCenteredSearch<Leading: View, Trailing: View>: View {
+    @ViewBuilder var leading: Leading
+    let placeholder: String
+    @Binding var searchText: String
+    @ViewBuilder var trailing: Trailing
+
+    var body: some View {
+        ZStack {
+            HStack(alignment: .center, spacing: 10) {
+                leading
+                Spacer(minLength: 0)
+                trailing
+            }
+            CenteredTabSearchField(placeholder: placeholder, text: $searchText)
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 10)
+        .overlay(alignment: .bottom) { Divider() }
+    }
+}

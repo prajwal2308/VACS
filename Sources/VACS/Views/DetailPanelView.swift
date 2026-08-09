@@ -46,9 +46,9 @@ struct DetailPanelView: View {
                 Divider()
             }
             if isLoading {
-                Spacer()
-                ProgressView("Scanning folder contents…")
-                Spacer()
+                ScrollView {
+                    DetailPanelSkeleton()
+                }
             } else if groups.isEmpty {
                 Spacer()
                 VStack(spacing: 8) {
@@ -253,6 +253,11 @@ struct DetailPanelView: View {
                     .foregroundStyle(Theme.secondaryText)
                     .lineLimit(1)
                     .truncationMode(.middle)
+                if let label = entry.modifiedLabel {
+                    Text(label)
+                        .font(.system(size: 9.5))
+                        .foregroundStyle(Theme.tertiaryText)
+                }
             }
 
             Spacer(minLength: 4)

@@ -123,11 +123,27 @@ struct SelectableItemRow: View {
                 HStack(spacing: 6) {
                     Text(item.name).font(.system(size: 13, weight: .medium))
                     SafetyChip(safety: item.safety)
+                    if let cmd = item.command {
+                        Button {
+                            NSPasteboard.general.clearContents()
+                            NSPasteboard.general.setString(cmd, forType: .string)
+                        } label: {
+                            Label("Copy cmd", systemImage: "doc.on.doc")
+                                .font(.system(size: 10, weight: .medium))
+                        }
+                        .buttonStyle(SecondaryOutlineButtonStyle())
+                        .controlSize(.small)
+                    }
                 }
                 Text(item.note)
                     .font(.system(size: 11))
                     .foregroundStyle(item.safety == .check || item.safety == .command ? Theme.dangerRed : Theme.secondaryText)
                     .lineLimit(item.safety == .check ? 2 : 1)
+                if let label = item.modifiedLabel {
+                    Text(label)
+                        .font(.system(size: 9.5))
+                        .foregroundStyle(Theme.tertiaryText)
+                }
                 Text(item.path).font(.system(size: 9.5).monospaced()).foregroundStyle(Theme.tertiaryText).lineLimit(1)
             }
 

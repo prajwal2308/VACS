@@ -35,8 +35,10 @@ struct ScanItem: Identifiable, Hashable, Sendable {
     let command: String?
     var sizeBytes: Int64
     let known: Bool
+    var modifiedAt: Date? = nil
 
     var sizeText: String { ByteText.string(sizeBytes) }
+    var modifiedLabel: String? { RelativeDateText.label(for: modifiedAt) }
 }
 
 // MARK: - Installed apps + drill-down panel (PureMac-style)
@@ -78,9 +80,11 @@ struct FileEntry: Identifiable, Hashable {
     /// `.app` bundles and Apple system apps need extra confirmation.
     let requiresConfirm: Bool
     let isDirectory: Bool
+    var modifiedAt: Date? = nil
 
     var sizeText: String { ByteText.string(sizeBytes) }
     var isDrillable: Bool { isDirectory }
+    var modifiedLabel: String? { RelativeDateText.label(for: modifiedAt) }
 }
 
 struct FileGroup: Identifiable {
@@ -99,8 +103,10 @@ struct InstalledApp: Identifiable, Hashable {
     var totalBytes: Int64
     var fileCount: Int
     let isSystemApp: Bool
+    var modifiedAt: Date? = nil
 
     var sizeText: String { ByteText.string(totalBytes) }
+    var modifiedLabel: String? { RelativeDateText.label(for: modifiedAt) }
 }
 
 /// CLI / package-manager install discovered by PackageFinderScanner.
@@ -113,8 +119,10 @@ struct InstalledPackage: Identifiable, Hashable {
     let detail: String
     /// Terminal command to uninstall — copy and paste into Terminal.
     let uninstallCommand: String?
+    var modifiedAt: Date? = nil
 
     var sizeText: String { ByteText.string(sizeBytes) }
+    var modifiedLabel: String? { RelativeDateText.label(for: modifiedAt) }
 }
 
 enum AISkillKind: String, Hashable {
@@ -131,9 +139,11 @@ struct AISkillEntry: Identifiable, Hashable {
     let kind: AISkillKind
     let issue: String?
     let sizeBytes: Int64
+    var modifiedAt: Date? = nil
 
     var sizeText: String { ByteText.string(sizeBytes) }
     var needsAttention: Bool { issue != nil }
+    var modifiedLabel: String? { RelativeDateText.label(for: modifiedAt) }
 }
 
 /// What the right-hand detail panel is showing.

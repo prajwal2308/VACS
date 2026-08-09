@@ -15,17 +15,23 @@ enum AppScanner {
 
     private static func entry(
         path: String, name: String? = nil, kind: FileGroupKind,
-        bytes: Int64, confirm: Bool = false
+        bytes: Int64, confirm: Bool = false, modifiedAt: Date? = nil
     ) -> FileEntry {
-        FileEntry(
+        let mod = modifiedAt ?? modificationDate(at: path)
+        return FileEntry(
             id: path,
             name: name ?? (path as NSString).lastPathComponent,
             path: path,
             sizeBytes: bytes,
             kind: kind,
             requiresConfirm: confirm || (kind == .application),
-            isDirectory: isDirectory(path)
+            isDirectory: isDirectory(path),
+            modifiedAt: mod
         )
+    }
+
+    private static func modificationDate(at path: String) -> Date? {
+        try? fm.attributesOfItem(atPath: path)[.modificationDate] as? Date
     }
 
     static func listApps() -> [InstalledApp] {
@@ -51,11 +57,13 @@ enum AppScanner {
                 guard !path.contains("/Contents/"), seen.insert(path).inserted else { continue }
                 let bundleID = bundleIdentifier(at: path)
                 let size = Shell.size(path)
+                let mod = modificationDate(at: path)
                 apps.append(InstalledApp(
                     id: path, name: name.replacingOccurrences(of: ".app", with: ""),
                     bundleID: bundleID, appPath: path,
                     totalBytes: size, fileCount: 1,
-                    isSystemApp: bundleID.map { isProtected($0) } ?? false
+                    isSystemApp: bundleID.map { isProtected($0) } ?? false,
+                    modifiedAt: mod
                 ))
             } else if !name.hasSuffix(".appex") && !name.hasSuffix(".plugin") && !name.hasSuffix(".framework") {
                 walkForApps(in: path, seen: &seen, apps: &apps)
@@ -129,18 +137,51 @@ enum AppScanner {
         }
     }
 
-    /// Folder drill-down for cache scan rows. DerivedData gets per-project breakdown.
+    /// Folder drill-down — lists files and folders via FileManager (du misses leaf files).
     static func folderContents(path: String, ruleID: String? = nil) -> [FileGroup] {
         if ruleID == "xcode-deriveddata" || path.hasSuffix("DerivedData") {
             return derivedDataBreakdown(path: path)
         }
-        let children = Shell.du(path, depth: 1).filter { $0.path != path && $0.bytes > 0 }
+        guard let names = try? fm.contentsOfDirectory(atPath: path) else {
+            return folderContentsViaDu(path: path)
+        }
+
+        var entries: [FileEntry] = []
+        for name in names where !name.hasPrefix(".") {
+            let child = (path as NSString).appendingPathComponent(name)
+            var isDir: ObjCBool = false
+            guard fm.fileExists(atPath: child, isDirectory: &isDir) else { continue }
+            let bytes: Int64 = isDir.boolValue ? Shell.size(child) : fileSize(child)
+            entries.append(entry(
+                path: child,
+                name: friendlyName(for: child) ?? name,
+                kind: .contents,
+                bytes: bytes,
+                modifiedAt: modificationDate(at: child)
+            ))
+        }
+        entries.sort { $0.sizeBytes > $1.sizeBytes }
+        if entries.isEmpty { return folderContentsViaDu(path: path) }
+        return [FileGroup(kind: .contents, entries: entries)]
+    }
+
+    private static func fileSize(_ path: String) -> Int64 {
+        if let attrs = try? fm.attributesOfItem(atPath: path),
+           let n = attrs[.size] as? NSNumber {
+            return n.int64Value
+        }
+        return Shell.size(path)
+    }
+
+    private static func folderContentsViaDu(path: String) -> [FileGroup] {
+        let children = Shell.du(path, depth: 1).filter { $0.path != path }
         let entries = children.map { child in
             entry(
                 path: child.path,
                 name: friendlyName(for: child.path) ?? (child.path as NSString).lastPathComponent,
                 kind: .contents,
-                bytes: child.bytes
+                bytes: child.bytes,
+                modifiedAt: modificationDate(at: child.path)
             )
         }.sorted { $0.sizeBytes > $1.sizeBytes }
         guard !entries.isEmpty else { return [] }
@@ -163,21 +204,7 @@ enum AppScanner {
             ))
         }
         entries.sort { $0.sizeBytes > $1.sizeBytes }
-        guard !entries.isEmpty else { return folderContentsFlat(path: path) }
-        return [FileGroup(kind: .contents, entries: entries)]
-    }
-
-    private static func folderContentsFlat(path: String) -> [FileGroup] {
-        let children = Shell.du(path, depth: 1).filter { $0.path != path && $0.bytes > 0 }
-        let entries = children.map { child in
-            entry(
-                path: child.path,
-                name: friendlyName(for: child.path) ?? (child.path as NSString).lastPathComponent,
-                kind: .contents,
-                bytes: child.bytes
-            )
-        }.sorted { $0.sizeBytes > $1.sizeBytes }
-        guard !entries.isEmpty else { return [] }
+        guard !entries.isEmpty else { return folderContentsViaDu(path: path) }
         return [FileGroup(kind: .contents, entries: entries)]
     }
 

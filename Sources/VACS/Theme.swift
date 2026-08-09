@@ -88,6 +88,24 @@ struct GhostButtonStyle: ButtonStyle {
     }
 }
 
+/// Compact outline button for Reveal in Finder actions.
+struct RevealButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .font(.system(size: 11, weight: .medium))
+            .foregroundStyle(Theme.primaryText)
+            .padding(.horizontal, 10)
+            .padding(.vertical, 5)
+            .background(
+                Capsule()
+                    .strokeBorder(Theme.hairline, lineWidth: 0.5)
+                    .background(Capsule().fill(Theme.elevated.opacity(configuration.isPressed ? 0.9 : 1)))
+            )
+            .scaleEffect(configuration.isPressed ? 0.97 : 1)
+            .animation(Theme.easeOut, value: configuration.isPressed)
+    }
+}
+
 struct DestructivePillButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label

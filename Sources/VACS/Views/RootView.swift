@@ -11,7 +11,11 @@ struct RootView: View {
                 GeometryReader { geo in
                     NavigationSplitView(columnVisibility: $columnVisibility) {
                         SidebarView()
-                            .navigationSplitViewColumnWidth(min: 200, ideal: 228, max: 260)
+                            .navigationSplitViewColumnWidth(
+                                min: 220,
+                                ideal: sidebarIdealWidth(for: geo.size.width),
+                                max: 280
+                            )
                     } detail: {
                         SectionDetailView()
                             .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -58,12 +62,11 @@ struct RootView: View {
             Button("Review Trash") { model.goToTrashCleanup() }
             Button("Not now", role: .cancel) { model.dismissTrashCleanupPrompt() }
         } message: {
-            Text("Your Trash holds \(ByteText.storage(model.trashTotalBytes)) — more than all other safe scan results. Empty Trash to reclaim that space.")
+            Text("Your Trash holds \(ByteText.storage(model.trashTotalBytes)). Review items and empty Trash to reclaim that space.")
         }
     }
 
     private func updateColumns(width: CGFloat) {
-        // Narrow: detail only — sidebar via toolbar toggle (no wasted space)
         let target: NavigationSplitViewVisibility = width < 720 ? .detailOnly
             : width < 920 ? .doubleColumn
             : .all
@@ -72,5 +75,11 @@ struct RootView: View {
             t.disablesAnimations = true
             withTransaction(t) { columnVisibility = target }
         }
+    }
+
+    private func sidebarIdealWidth(for width: CGFloat) -> CGFloat {
+        if width >= 1600 { return 272 }
+        if width >= 1200 { return 252 }
+        return 232
     }
 }

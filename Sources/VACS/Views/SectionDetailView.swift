@@ -41,17 +41,20 @@ private struct CategoryDetailView: View {
     private var isScanningThis: Bool {
         model.isScanning && (model.scanningSection == section || model.scanningSection == nil)
     }
-    private var hasResults: Bool { model.scannedSections.contains(section) }
+    private var hasScanned: Bool { model.hasScanned(section) }
+    private var hasItems: Bool { model.itemCount(for: section) > 0 }
 
     var body: some View {
         VStack(spacing: 0) {
             compactHeader
-            if hasResults {
-                CategorySplitView(section: section)
-            } else if isScanningThis {
+            if isScanningThis {
                 Spacer()
                 ProgressView("Measuring…").controlSize(.small)
                 Spacer()
+            } else if hasScanned && hasItems {
+                CategorySplitView(section: section)
+            } else if hasScanned {
+                emptyResultsState
             } else {
                 notScannedState
             }
@@ -64,9 +67,13 @@ private struct CategoryDetailView: View {
             SectionIconBadge(section: section, size: 28, filled: true)
             VStack(alignment: .leading, spacing: 1) {
                 Text(section.rawValue).font(.system(size: 15, weight: .semibold))
-                if hasResults {
+                if hasScanned && hasItems {
                     Text("\(model.itemCount(for: section)) items · \(ByteText.string(model.totalBytes(for: section)))")
                         .font(.caption.monospacedDigit())
+                        .foregroundStyle(Theme.secondaryText)
+                } else if hasScanned {
+                    Text("Scanned — nothing to clean")
+                        .font(.caption)
                         .foregroundStyle(Theme.secondaryText)
                 } else {
                     Text(section.blurb).font(.caption).foregroundStyle(Theme.secondaryText).lineLimit(1)
@@ -83,10 +90,10 @@ private struct CategoryDetailView: View {
                             .controlSize(.small)
                             .tint(.white)
                     } else {
-                        Image(systemName: hasResults ? "arrow.clockwise" : "magnifyingglass")
+                        Image(systemName: hasScanned ? "arrow.clockwise" : "magnifyingglass")
                             .font(.system(size: 11, weight: .semibold))
                     }
-                    Text(isScanningThis ? "Scanning…" : (hasResults ? "Rescan" : "Scan"))
+                    Text(isScanningThis ? "Scanning…" : (hasScanned ? "Rescan" : "Scan"))
                 }
             }
             .buttonStyle(PrimaryPillButtonStyle())
@@ -104,6 +111,24 @@ private struct CategoryDetailView: View {
             SectionIconBadge(section: section, size: 36, filled: true)
             Text("Not scanned yet").font(.headline)
             Button { model.scan(section: section) } label: { Text("Scan now") }
+                .buttonStyle(PrimaryPillButtonStyle())
+                .disabled(model.isScanning)
+            Spacer()
+        }
+        .frame(maxWidth: .infinity)
+    }
+
+    private var emptyResultsState: some View {
+        VStack(spacing: 12) {
+            Spacer()
+            SectionIconBadge(section: section, size: 36, filled: true)
+            Text("Nothing to clean here").font(.headline)
+            Text("Scan finished — no matching caches found, or you already cleaned them.")
+                .font(.caption)
+                .foregroundStyle(Theme.secondaryText)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, 24)
+            Button { model.scan(section: section) } label: { Text("Rescan") }
                 .buttonStyle(PrimaryPillButtonStyle())
                 .disabled(model.isScanning)
             Spacer()
