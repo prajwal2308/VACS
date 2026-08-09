@@ -13,15 +13,16 @@ struct InstalledAppsView: View {
         Group {
             if hasDetail {
                 HSplitView {
-                    appListPane.frame(minWidth: 240, idealWidth: 280)
+                    appListPane.frame(minWidth: 260, idealWidth: 320)
                     detailPane
-                        .frame(minWidth: 280)
+                        .frame(minWidth: 300)
                         .detailTransition(active: hasDetail)
                 }
             } else {
                 appListPane
             }
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Theme.bg)
         .onAppear {
             if !model.installedAppsLoaded { model.loadInstalledApps() }
@@ -31,20 +32,6 @@ struct InstalledAppsView: View {
     private var appListPane: some View {
         VStack(spacing: 0) {
             compactHeader
-
-            HStack(spacing: 8) {
-                Image(systemName: "magnifyingglass")
-                    .font(.system(size: 12))
-                    .foregroundStyle(Theme.secondaryText)
-                TextField("Search apps", text: $model.appSearchQuery)
-                    .textFieldStyle(.plain)
-            }
-            .padding(.horizontal, 10)
-            .padding(.vertical, 7)
-            .background(Theme.card, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
-            .overlay(RoundedRectangle(cornerRadius: 8).stroke(Theme.hairline.opacity(0.35), lineWidth: 0.5))
-            .padding(.horizontal, 12)
-            .padding(.bottom, 8)
 
             HStack {
                 Text("\(model.filteredInstalledApps.count) apps")
@@ -61,79 +48,97 @@ struct InstalledAppsView: View {
             .padding(.bottom, 6)
 
             if model.isLoadingApps && !model.installedAppsLoaded {
-                Spacer()
-                ProgressView("Loading…").controlSize(.small)
-                Spacer()
+                ScrollView {
+                    SkeletonAppGrid()
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
                 ScrollView {
-                    LazyVStack(spacing: 0) {
+                    LazyVGrid(
+                        columns: [GridItem(.adaptive(minimum: 128, maximum: 156), spacing: 10)],
+                        spacing: 10
+                    ) {
                         ForEach(model.filteredInstalledApps) { app in
-                            appRow(app)
-                            if app.id != model.filteredInstalledApps.last?.id {
-                                Divider().padding(.leading, 48)
-                            }
+                            appTile(app)
                         }
                     }
-                    .frame(maxWidth: .infinity)
-                    .padding(.horizontal, 10)
-                    .padding(.bottom, 10)
+                    .padding(12)
                 }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
         }
     }
 
     private var compactHeader: some View {
-        HStack(spacing: 10) {
-            SectionIconBadge(section: .installedApps, size: 28, filled: true)
-            VStack(alignment: .leading, spacing: 1) {
-                Text("Installed Apps")
-                    .font(.system(size: 15, weight: .semibold))
-                if model.installedAppsLoaded {
-                    Text("\(model.installedApps.count) apps")
-                        .font(.caption)
-                        .foregroundStyle(Theme.secondaryText)
+        TabHeaderWithCenteredSearch(
+            leading: {
+                HStack(spacing: 10) {
+                    SectionIconBadge(section: .installedApps, size: 28, filled: true)
+                    VStack(alignment: .leading, spacing: 1) {
+                        Text("Installed Apps")
+                            .font(.system(size: 15, weight: .semibold))
+                        if model.installedAppsLoaded {
+                            Text("\(model.installedApps.count) apps")
+                                .font(.caption)
+                                .foregroundStyle(Theme.secondaryText)
+                        }
+                    }
                 }
+            },
+            placeholder: "Search apps",
+            searchText: $model.appSearchQuery,
+            trailing: {
+                Button { model.loadInstalledApps() } label: {
+                    Image(systemName: "arrow.clockwise")
+                        .font(.system(size: 12, weight: .medium))
+                }
+                .buttonStyle(SecondaryOutlineButtonStyle())
+                .disabled(model.isLoadingApps)
             }
-            Spacer()
-            Button { model.loadInstalledApps() } label: {
-                Image(systemName: "arrow.clockwise")
-                    .font(.system(size: 12, weight: .medium))
-            }
-            .buttonStyle(SecondaryOutlineButtonStyle())
-            .disabled(model.isLoadingApps)
-        }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 10)
+        )
     }
 
     @ViewBuilder
-    private func appRow(_ app: InstalledApp) -> some View {
-        let selected = {
-            if case .installedApp(let a) = model.detailTarget { a.id == app.id }
-            else { false }
+    private func appTile(_ app: InstalledApp) -> some View {
+        let selected: Bool = {
+            if case .installedApp(let a) = model.detailTarget { return a.id == app.id }
+            return false
         }()
 
         Button { model.openInstalledAppDetail(app) } label: {
-            HStack(spacing: 10) {
+            VStack(spacing: 6) {
                 Image(nsImage: AppScanner.appIcon(for: app.appPath))
-                    .resizable().aspectRatio(contentMode: .fit).frame(width: 24, height: 24)
-                VStack(alignment: .leading, spacing: 1) {
-                    Text(app.name).font(.system(size: 13, weight: .medium)).lineLimit(1)
-                    if let bid = app.bundleID {
-                        Text(bid).font(.system(size: 9.5).monospaced()).foregroundStyle(Theme.tertiaryText).lineLimit(1)
-                    }
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: 36, height: 36)
+                Text(app.name)
+                    .font(.system(size: 12, weight: .semibold))
+                    .lineLimit(2)
+                    .multilineTextAlignment(.center)
+                    .foregroundStyle(Theme.primaryText)
+                Text(app.sizeText)
+                    .font(.system(size: 11, weight: .semibold).monospacedDigit())
+                    .foregroundStyle(Theme.secondaryText)
+                if let label = app.modifiedLabel {
+                    Text(label)
+                        .font(.system(size: 9))
+                        .foregroundStyle(Theme.tertiaryText)
+                        .lineLimit(1)
                 }
-                Spacer(minLength: 4)
-                Text(app.sizeText).font(.system(size: 12, weight: .semibold).monospacedDigit())
             }
-            .padding(.horizontal, 10)
-            .padding(.vertical, 8)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .background(selected ? Theme.navy.opacity(0.08) : Color.clear, in: RoundedRectangle(cornerRadius: 6))
-            .contentShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 12)
+            .padding(.horizontal, 8)
+            .background(
+                selected ? Theme.navy.opacity(0.08) : Theme.card,
+                in: RoundedRectangle(cornerRadius: 10, style: .continuous)
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 10, style: .continuous)
+                    .strokeBorder(selected ? Theme.navy.opacity(0.35) : Theme.hairline.opacity(0.6), lineWidth: 1)
+            )
         }
-        .buttonStyle(NavRowButtonStyle())
-        .frame(maxWidth: .infinity, alignment: .leading)
+        .buttonStyle(.plain)
     }
 
     @ViewBuilder

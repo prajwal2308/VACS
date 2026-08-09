@@ -37,7 +37,8 @@ enum PackageFinderScanner {
                 path: prefix,
                 sizeBytes: Shell.size(prefix),
                 detail: "Homebrew formula",
-                uninstallCommand: "brew uninstall \(name)"
+                uninstallCommand: "brew uninstall \(name)",
+                modifiedAt: modificationDate(at: prefix)
             )
         }
     }
@@ -61,7 +62,8 @@ enum PackageFinderScanner {
                 path: appPath,
                 sizeBytes: Shell.size(appPath),
                 detail: "Homebrew cask",
-                uninstallCommand: "brew uninstall --cask \(name)"
+                uninstallCommand: "brew uninstall --cask \(name)",
+                modifiedAt: modificationDate(at: appPath)
             )
         }
     }
@@ -103,7 +105,8 @@ enum PackageFinderScanner {
                 path: path,
                 sizeBytes: Shell.size(path),
                 detail: "Global npm package",
-                uninstallCommand: "npm uninstall -g \(name)"
+                uninstallCommand: "npm uninstall -g \(name)",
+                modifiedAt: modificationDate(at: path)
             )
         }
     }
@@ -131,7 +134,8 @@ enum PackageFinderScanner {
                 path: path,
                 sizeBytes: Shell.size(path),
                 detail: "Python package",
-                uninstallCommand: "\(pipCmd) uninstall \(name)"
+                uninstallCommand: "\(pipCmd) uninstall \(name)",
+                modifiedAt: modificationDate(at: path)
             )
         }
     }
@@ -166,7 +170,8 @@ enum PackageFinderScanner {
                     path: path,
                     sizeBytes: bytes,
                     detail: "Binary in \((dir as NSString).lastPathComponent)",
-                    uninstallCommand: nil
+                    uninstallCommand: nil,
+                    modifiedAt: modificationDate(at: path)
                 ))
             }
         }
@@ -174,6 +179,10 @@ enum PackageFinderScanner {
     }
 
     // MARK: - Helpers
+
+    private static func modificationDate(at path: String) -> Date? {
+        try? fm.attributesOfItem(atPath: path)[.modificationDate] as? Date
+    }
 
     private static func brewExecutable() -> String? {
         for path in ["/opt/homebrew/bin/brew", "/usr/local/bin/brew"] {

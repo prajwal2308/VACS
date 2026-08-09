@@ -63,7 +63,8 @@ enum AISkillsScanner {
                     path: path,
                     kind: .skill,
                     issue: issue,
-                    sizeBytes: bytes
+                    sizeBytes: bytes,
+                    modifiedAt: mod
                 ))
                 addedForRoot += 1
             }
@@ -77,7 +78,8 @@ enum AISkillsScanner {
                         path: root,
                         kind: .skill,
                         issue: nil,
-                        sizeBytes: bytes
+                        sizeBytes: bytes,
+                        modifiedAt: modificationDate(at: root)
                     ))
                 }
             }
@@ -135,7 +137,8 @@ enum AISkillsScanner {
                 path: path,
                 kind: .mcp,
                 issue: issue,
-                sizeBytes: bytes
+                sizeBytes: bytes,
+                modifiedAt: (try? fm.attributesOfItem(atPath: path)[.modificationDate] as? Date)
             ))
         }
 
@@ -164,9 +167,14 @@ enum AISkillsScanner {
                 issue: bytes > 2_000_000_000
                     ? "Large (\(ByteText.string(bytes))) — may include stale caches or indexes"
                     : nil,
-                sizeBytes: bytes
+                sizeBytes: bytes,
+                modifiedAt: modificationDate(at: path)
             ))
         }
         return results
+    }
+
+    private static func modificationDate(at path: String) -> Date? {
+        try? fm.attributesOfItem(atPath: path)[.modificationDate] as? Date
     }
 }

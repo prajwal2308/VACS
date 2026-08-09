@@ -17,8 +17,10 @@ struct TrashView: View {
             header
             infoBanner
             listArea
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
             footer
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Theme.bg)
         .onAppear { model.loadTrash() }
         .alert("Put Back", isPresented: Binding(
@@ -81,19 +83,18 @@ struct TrashView: View {
     }
 
     private var listArea: some View {
-        ScrollView {
+        ScrollView(.vertical, showsIndicators: true) {
             VStack(alignment: .leading, spacing: 10) {
                 if !model.trashItems.isEmpty {
                     selectionBar
                 }
 
                 if model.isLoadingTrash && model.trashItems.isEmpty {
-                    HStack {
-                        Spacer()
-                        ProgressView("Reading Trash…").controlSize(.small)
-                        Spacer()
+                    VStack(spacing: 0) {
+                        ForEach(0..<8, id: \.self) { _ in SkeletonRow() }
                     }
-                    .padding(.vertical, 40)
+                    .elevatedCard(radius: 10)
+                    .padding(.top, 4)
                 } else if model.trashItems.isEmpty {
                     VStack(spacing: 8) {
                         Image(systemName: "trash")

@@ -111,7 +111,7 @@ struct TrashCleanupBanner: View {
                 Text("Clean up Trash")
                     .font(.system(size: 14, weight: .semibold))
                     .foregroundStyle(Theme.primaryText)
-                Text("Your Trash holds \(ByteText.storage(model.trashTotalBytes)) — more than all other safe items combined. Empty Trash to free space.")
+                Text("Your Trash holds \(ByteText.storage(model.trashTotalBytes)). Review and empty Trash to free that space.")
                     .font(.caption)
                     .foregroundStyle(Theme.secondaryText)
                     .fixedSize(horizontal: false, vertical: true)

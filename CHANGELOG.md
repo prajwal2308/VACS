@@ -2,6 +2,31 @@
 
 All notable changes to VACS are documented here.
 
+## [0.1.3] — 2026-08-09
+
+### Added
+
+- **Skeleton loaders** for Installed Apps, Packages, AI & Skills, Trash, and folder drill-down
+- **Type-specific icons** on Packages and AI & Skills cards (`DiscoveryItemIcon`)
+- **Last-modified** labels on scan and discovery rows (`RelativeDateText`)
+- **Copy cmd** button for Docker/command safety items in category detail
+- **Centered pill search** in Installed Apps, Packages, and AI & Skills headers
+
+### Changed
+
+- **Installed Apps** — compact icon tile grid on large screens
+- **Installed Packages** — 3-column card grid with clearer borders
+- **AI & Skills** — compact tiles matching Installed Apps; click to reveal in Finder
+- Sidebar and Trash views scroll independently on large displays
+- Adaptive sidebar width on wide windows
+
+### Fixed
+
+- **Apps** (and other categories) no longer revert to "Not scanned yet" after a scan with zero or cleaned items — shows "Nothing to clean here" instead
+- Trash cleanup banner no longer vanishes on rescan when Trash is still large
+- Folder drill-down lists files at leaf folders (not only `du` subdirs)
+- Lifetime stats no longer double-count trash reclaim vs permanent delete
+
 ## [0.1.2] — 2026-08-05
 
 ### Added
