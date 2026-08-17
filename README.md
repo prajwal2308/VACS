@@ -34,6 +34,12 @@ Most cleaners call it all "junk." **VACS tells you what each folder actually is*
 
 ---
 
+<p align="center">
+  <video src="https://github.com/prajwal2308/VACS/releases/download/v0.1.3/VACS_Demo.mp4" controls="controls" width="100%" style="max-width: 800px; border-radius: 8px;">
+  </video>
+</p>
+
+
 ## Features
 
 ### Smart Scan
