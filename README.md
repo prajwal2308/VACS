@@ -169,7 +169,7 @@ VACS/
 │   └── …                   # Scanner, AppModel, Trash, etc.
 ├── Package.swift           # Optional: open in Xcode
 ├── README.md
-├── LICENSE                 # Proprietary
+├── LICENSE                 # MIT License
 ├── SECURITY.md
 ├── SUPPORT.md
 └── CHANGELOG.md
@@ -235,9 +235,7 @@ Feature matrix vs PureMac, Purge, ClearDisk, Cacheout, and others: **[docs/COMPA
 
 ## License
 
-**Proprietary — all rights reserved.** VACS is not open source.
-
-See **[LICENSE](LICENSE)**. Unauthorized copying, modification, or distribution is prohibited. This repository is published for authorized use and transparency by the copyright holder — not for unsolicited contributions or forks.
+VACS is open-source software licensed under the **[MIT License](LICENSE)**. Feel free to use, modify, and distribute.
 
 Support: **[SUPPORT.md](SUPPORT.md)**
 

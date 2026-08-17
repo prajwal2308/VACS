@@ -30,15 +30,13 @@ enum AppInfo {
     static let tagline = "See what's eating your Mac — and what's safe to remove."
     static let author = "Prajwal"
     static let copyrightYear = "2026"
-    static let licenseName = "Proprietary · All Rights Reserved"
+    static let licenseName = "MIT License"
     static let repoURL = URL(string: "https://github.com/prajwal2308/VACS")!
 
     static let licenseNotice = """
-    Copyright © \(copyrightYear) \(author). All rights reserved.
+    Copyright © \(copyrightYear) \(author). MIT License.
 
-    VACS is proprietary software — not open source. You may not copy, modify, distribute, sell, or create derivative works from this app or its source without prior written permission.
-
-    Unauthorized use may violate applicable copyright and software licensing laws. This project does not accept unsolicited contributions or forks for redistribution.
+    Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files, to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies.
     """
 
     static var version: String {
