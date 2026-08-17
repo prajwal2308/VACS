@@ -11,11 +11,10 @@
 
 ## License & contributions
 
-VACS is **proprietary software**. See [LICENSE](LICENSE).
+VACS is open-source software released under the **[MIT License](LICENSE)**.
 
-- This repository is published for transparency and authorized use by the copyright holder
-- **Unsolicited contributions, forks for redistribution, and copying without permission are not accepted**
-- Feature requests may be noted in Issues; implementation is at the maintainer's discretion
+- Contributions, pull requests, and bug reports are welcome!
+- Feature requests and improvements can be submitted via Issues and Pull Requests.
 
 ## System requirements
 
