@@ -24,11 +24,6 @@
   <img src="https://img.shields.io/badge/arch-arm64-blue" alt="Apple Silicon" />
 </p>
 
-<p align="center">
-  <video src="https://github.com/prajwal2308/VACS/releases/download/v0.1.3/VACS_Demo.mp4" controls="controls" width="100%" style="max-width: 800px; border-radius: 8px;">
-  </video>
-</p>
-
 ---
 
 Your Mac quietly accumulates tens of gigabytes of **developer caches** — Xcode DerivedData, Docker VM disks, npm stores, Playwright browsers, Ollama models — plus everyday app temp files from Zoom, Discord, and Slack.
