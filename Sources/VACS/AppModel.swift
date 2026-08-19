@@ -125,7 +125,7 @@ final class AppModel: ObservableObject {
     }
 
     var reclaimableSafe: Int64 {
-        items.filter { $0.safety == .safe }.reduce(0) { $0 + $1.sizeBytes }
+        overviewRows.reduce(0) { $0 + $1.safe }
     }
 
     var overviewSelectedSafeBytes: Int64 {
@@ -294,6 +294,20 @@ final class AppModel: ObservableObject {
             paths: paths,
             summary: "\(paths.count) items · \(ByteText.string(bytes))",
             complete: !appOnly
+        )
+    }
+
+    func requestAppReset() {
+        guard case .installedApp(let app) = detailTarget else { return }
+        let allEntries = detailGroups.flatMap(\.entries)
+        let resetPaths = Set(allEntries.filter { $0.kind != .application }.map(\.path))
+        guard !resetPaths.isEmpty else { return }
+        let bytes = allEntries.filter { resetPaths.contains($0.path) }.reduce(0) { $0 + $1.sizeBytes }
+        cleanPrompt = .uninstall(
+            appName: "\(app.name) (Reset App Data)",
+            paths: resetPaths,
+            summary: "\(resetPaths.count) items · \(ByteText.string(bytes))",
+            complete: false
         )
     }
 
@@ -569,10 +583,19 @@ final class AppModel: ObservableObject {
     func loadInstalledPackages() {
         guard !isLoadingPackages else { return }
         isLoadingPackages = true
+        installedPackages = []
         Task.detached(priority: .userInitiated) {
-            let packages = PackageFinderScanner.scan()
+            var seen = Set<String>()
+            PackageFinderScanner.scanChunks { chunk in
+                let newItems = chunk.filter { seen.insert($0.path).inserted }
+                guard !newItems.isEmpty else { return }
+                Task { @MainActor in
+                    self.installedPackages.append(contentsOf: newItems)
+                    self.installedPackages.sort { $0.sizeBytes > $1.sizeBytes }
+                    self.installedPackagesLoaded = true
+                }
+            }
             await MainActor.run {
-                self.installedPackages = packages
                 self.installedPackagesLoaded = true
                 self.isLoadingPackages = false
             }
@@ -616,9 +639,12 @@ final class AppModel: ObservableObject {
             await MainActor.run {
                 guard case .installedApp(let current) = self.detailTarget, current.id == app.id else { return }
                 self.detailGroups = groups
-                self.detailSelectedPaths = Set(groups.flatMap(\.entries)
+                let unconfirmed = Set(groups.flatMap(\.entries)
                     .filter { $0.kind != .application && !$0.requiresConfirm }
                     .map(\.id))
+                self.detailSelectedPaths = unconfirmed.isEmpty
+                    ? Set(groups.flatMap(\.entries).map(\.id))
+                    : unconfirmed
                 self.isLoadingDetail = false
             }
         }
@@ -702,6 +728,43 @@ final class AppModel: ObservableObject {
         detailShowsGroupedRoot = false
     }
 
+    private func recycleWithFallback(urls: [URL]) async -> [URL: URL] {
+        var mapping: [URL: URL] = await withCheckedContinuation { cont in
+            NSWorkspace.shared.recycle(urls) { result, _ in
+                cont.resume(returning: result)
+            }
+        }
+        let fm = FileManager.default
+        for url in urls where mapping[url] == nil {
+            guard fm.fileExists(atPath: url.path) else { continue }
+            var resultingURL: NSURL?
+            do {
+                try fm.trashItem(at: url, resultingItemURL: &resultingURL)
+                if let res = resultingURL as URL? {
+                    mapping[url] = res
+                }
+            } catch {
+                if let trashedURL = trashViaFinder(path: url.path) {
+                    mapping[url] = trashedURL
+                }
+            }
+        }
+        return mapping
+    }
+
+    private func trashViaFinder(path: String) -> URL? {
+        let script = "tell application \"Finder\" to delete POSIX file \"\(path)\""
+        var error: NSDictionary?
+        if let appleScript = NSAppleScript(source: script) {
+            appleScript.executeAndReturnError(&error)
+            if error == nil {
+                let trashPath = (NSHomeDirectory() as NSString).appendingPathComponent(".Trash/\((path as NSString).lastPathComponent)")
+                return URL(fileURLWithPath: trashPath)
+            }
+        }
+        return nil
+    }
+
     func trashDetailSelection() async {
         await executeTrashDetail(paths: detailSelectedPaths)
     }
@@ -714,11 +777,7 @@ final class AppModel: ObservableObject {
             .filter { paths.contains($0.id) }
             .reduce(0) { $0 + $1.sizeBytes }
 
-        let mapping: [URL: URL] = await withCheckedContinuation { cont in
-            NSWorkspace.shared.recycle(urls) { result, _ in
-                cont.resume(returning: result)
-            }
-        }
+        let mapping = await recycleWithFallback(urls: urls)
         TrashOriginStore.recordRecycleResult(mapping)
         let trashed = Set(mapping.keys.map(\.path))
 
@@ -751,14 +810,30 @@ final class AppModel: ObservableObject {
                 } else {
                     items.remove(at: idx)
                     closeDetail()
-                    recordTrashReclaimed(reclaimed)
-                    refreshDisk()
-                    return trashed.count
                 }
             }
+            recordTrashReclaimed(reclaimed)
+            refreshDisk()
+            return trashed.count
         }
-        reloadCurrentDetailView(selectAll: false)
-        detailSelectedPaths.subtract(trashed)
+        return 0
+    }
+
+    @discardableResult
+    private func trashPaths(_ targets: [ScanItem]) async -> Int {
+        let valid = sanitizedTrashTargets(targets)
+        guard !valid.isEmpty else { return 0 }
+        let urls = valid.map { URL(fileURLWithPath: $0.path) }
+
+        let mapping = await recycleWithFallback(urls: urls)
+        TrashOriginStore.recordRecycleResult(mapping)
+        let trashed = Set(mapping.keys.map(\.path))
+
+        let removedIDs = Set(valid.filter { trashed.contains($0.path) }.map(\.id))
+        guard !removedIDs.isEmpty else { return 0 }
+        let reclaimed = valid.filter { removedIDs.contains($0.id) }.reduce(0) { $0 + $1.sizeBytes }
+        items.removeAll { removedIDs.contains($0.id) }
+        selection.subtract(removedIDs)
         recordTrashReclaimed(reclaimed)
         pruneEmptySections()
         refreshDisk()
@@ -965,44 +1040,15 @@ final class AppModel: ObservableObject {
         items(for: section).filter { $0.safety == .check && selection.contains($0.id) }.count
     }
 
-    /// Selected items first, then unselected safe — for overview card chips (max 4).
+    /// Show largest items first for overview card chips (max 4).
     func overviewPreviewItems(for section: VACSection, limit: Int = 4) -> [ScanItem] {
-        let selected = items(for: section)
-            .filter { canToggleInOverview($0) && selection.contains($0.id) }
+        let sorted = items(for: section)
+            .filter { canToggleInOverview($0) }
             .sorted { $0.sizeBytes > $1.sizeBytes }
-        if selected.count >= limit { return Array(selected.prefix(limit)) }
-        let selectedIDs = Set(selected.map(\.id))
-        let filler = safeItems(for: section).filter { !selectedIDs.contains($0.id) }
-        return selected + filler.prefix(limit - selected.count)
+        return Array(sorted.prefix(limit))
     }
 
     func hasOverviewSelection(in section: VACSection) -> Bool {
         items(for: section).contains { canToggleInOverview($0) && selection.contains($0.id) }
-    }
-
-    @discardableResult
-    private func trashPaths(_ targets: [ScanItem]) async -> Int {
-        let valid = sanitizedTrashTargets(targets)
-        guard !valid.isEmpty else { return 0 }
-        let urls = valid.map { URL(fileURLWithPath: $0.path) }
-
-        let mapping: [URL: URL] = await withCheckedContinuation { cont in
-            NSWorkspace.shared.recycle(urls) { result, _ in
-                cont.resume(returning: result)
-            }
-        }
-        TrashOriginStore.recordRecycleResult(mapping)
-        let trashed = Set(mapping.keys.map(\.path))
-
-        let removedIDs = Set(valid.filter { trashed.contains($0.path) }.map(\.id))
-        guard !removedIDs.isEmpty else { return 0 }
-        let reclaimed = valid.filter { removedIDs.contains($0.id) }.reduce(0) { $0 + $1.sizeBytes }
-        items.removeAll { removedIDs.contains($0.id) }
-        selection.subtract(removedIDs)
-        recordTrashReclaimed(reclaimed)
-        pruneEmptySections()
-        refreshDisk()
-        scheduleTrashRefresh()
-        return removedIDs.count
     }
 }

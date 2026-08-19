@@ -60,17 +60,22 @@ struct Scanner {
         "~/Library/Caches",
         "~/Library/Application Support",
         "~/Library/Containers",
+        "~/Library/Group Containers",
     ]
     static let discoveryThreshold: Int64 = 1_073_741_824  // 1 GB
 
     static func loadRules() -> [Rule] {
+        var baseRules: [Rule] = []
         for url in ruleSearchURLs() {
-            guard let data = try? Data(contentsOf: url),
-                  let rules = try? JSONDecoder().decode([Rule].self, from: data)
-            else { continue }
-            if !rules.isEmpty { return rules }
+            if let data = try? Data(contentsOf: url),
+               let rules = try? JSONDecoder().decode([Rule].self, from: data),
+               !rules.isEmpty {
+                baseRules = rules
+                break
+            }
         }
-        return embeddedFallback
+        if baseRules.isEmpty { baseRules = embeddedFallback }
+        return DynamicRuleStore.loadCombinedRules(staticRules: baseRules)
     }
 
     private static func ruleSearchURLs() -> [URL] {
@@ -109,7 +114,8 @@ struct Scanner {
             if rule.id == "trash" { continue }
             let abs = PathUtil.expand(rule.path)
             guard FileManager.default.fileExists(atPath: abs) else { continue }
-            let bytes = rule.id == "docker-desktop" ? Shell.allocatedSize(abs) : Shell.size(abs)
+            let isSparseVM = rule.id == "docker-desktop" || rule.id.hasPrefix("orbstack")
+            let bytes = isSparseVM ? Shell.allocatedSize(abs) : Shell.size(abs)
             guard bytes > 0 else { continue }
             onItem(ScanItem(
                 id: rule.id, name: rule.name, path: abs, category: rule.category,

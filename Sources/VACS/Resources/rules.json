@@ -55,6 +55,9 @@
   { "id": "electron-cache", "name": "Electron downloads", "path": "~/Library/Caches/electron", "category": "Browser Automation", "safety": "safe", "note": "Electron binary cache used by many desktop apps." },
 
   { "id": "docker-desktop", "name": "Docker Desktop data", "path": "~/Library/Containers/com.docker.docker", "category": "Containers & K8s", "safety": "command", "command": "docker system prune -a --volumes", "note": "Docker's VM disk (images, containers, volumes). Never delete this folder by hand — reclaim space with prune, or reset via Docker Desktop → Troubleshoot." },
+  { "id": "orbstack-data", "name": "OrbStack machines & containers", "path": "~/.orbstack", "category": "Containers & K8s", "safety": "check", "note": "OrbStack VM disk, container images, Linux machine data, and volumes. Reclaim space with `orbstack stop` or reset via OrbStack UI." },
+  { "id": "orbstack-group", "name": "OrbStack container images & VMs", "path": "~/Library/Group Containers/HUAQ24HBR6.dev.orbstack", "category": "Containers & K8s", "safety": "check", "note": "OrbStack main container disk images, Docker volumes, and virtual machine data." },
+  { "id": "orbstack-support", "name": "OrbStack app support", "path": "~/Library/Application Support/OrbStack", "category": "Containers & K8s", "safety": "check", "note": "OrbStack configuration and application state." },
   { "id": "minikube", "name": "Minikube cluster", "path": "~/.minikube", "category": "Containers & K8s", "safety": "command", "command": "minikube delete --all --purge", "note": "Local Kubernetes cluster VM and state. Remove it with minikube, not by deleting the folder." },
   { "id": "colima", "name": "Colima VM", "path": "~/.colima", "category": "Containers & K8s", "safety": "command", "command": "colima delete", "note": "Colima container VM and disk. Remove it with colima to avoid orphaned state." },
   { "id": "rancher-desktop", "name": "Rancher Desktop", "path": "~/Library/Application Support/rancher-desktop", "category": "Containers & K8s", "safety": "check", "note": "Rancher Desktop VM and Kubernetes state." },
@@ -91,7 +94,6 @@
   { "id": "location-analytics", "name": "Location Analytics", "path": "~/Library/Caches/com.apple.geod", "category": "Apps", "safety": "safe", "note": "Temporary data used by Apple's location analytics. Safe to delete — no effect on Maps or other apps." },
   { "id": "apple-mediaanalysis", "name": "Apple Media Analysis", "path": "~/Library/Caches/com.apple.MediaAnalysis", "category": "Apps", "safety": "safe", "note": "Photos and Spotlight media analysis cache. Rebuilt in the background." },
 
-  { "id": "user-caches", "name": "App caches", "path": "~/Library/Caches", "category": "System", "safety": "check", "note": "Shared cache folder for many apps. Mostly safe, but review before clearing everything." },
   { "id": "user-logs", "name": "App logs", "path": "~/Library/Logs", "category": "System", "safety": "safe", "note": "Application log files. Safe to clear." },
   { "id": "chrome-cache", "name": "Chrome cache", "path": "~/Library/Caches/Google/Chrome", "category": "System", "safety": "safe", "note": "HTTP cache only — not profiles, passwords, or extensions. Those live in Application Support/Google (Check first)." },
   { "id": "firefox-cache", "name": "Firefox cache", "path": "~/Library/Caches/Firefox", "category": "System", "safety": "safe", "note": "Firefox browser cache." },
