@@ -99,7 +99,7 @@ struct SmartCareHero: View {
                     .font(.system(size: 15, weight: .medium))
                     .foregroundStyle(Theme.heroText.opacity(0.92))
 
-                Text(ByteText.string(hasScanResults ? model.reclaimableSafe : 0))
+                Text(ByteText.string(model.isScanning ? model.reclaimableSafe : (hasScanResults ? model.reclaimableSafe : 0)))
                     .font(.system(size: 32, weight: .bold))
                     .monospacedDigit()
                     .foregroundStyle(Theme.heroText)
@@ -131,7 +131,7 @@ struct SmartCareHero: View {
                     Button {
                         model.scan(section: nil)
                     } label: {
-                        Text(model.isScanning && model.scanningSection == nil ? "Scanning…" : "Scan again")
+                        Text(model.isScanning && model.scanningSection == nil ? "Scanning…" : (hasScanResults ? "Scan again" : "Scan"))
                     }
                     .buttonStyle(SecondaryOutlineButtonStyle(lightOnDark: true))
                     .disabled(model.isScanning)
@@ -277,11 +277,15 @@ struct CategoryReviewCard: View {
                 SectionIconBadge(section: section, size: 28, filled: true)
             }
 
-            Text(ByteText.string(total))
-                .font(.system(size: 22, weight: .bold))
+            let cleanableBytes = model.isScanning ? safe : selectedSafeBytes
+
+            Text(ByteText.string(cleanableBytes))
+                .font(.system(size: 24, weight: .bold))
                 .monospacedDigit()
                 .displayTitle()
-                .foregroundStyle(Theme.primaryText)
+                .foregroundStyle(cleanableBytes > 0 ? Theme.safeGreen : Theme.secondaryText)
+                .contentTransition(.numericText())
+                .animation(.spring(response: 0.35, dampingFraction: 1), value: cleanableBytes)
                 .padding(.top, 8)
 
             Text(section.rawValue)
@@ -289,19 +293,14 @@ struct CategoryReviewCard: View {
                 .foregroundStyle(Theme.primaryText)
                 .padding(.top, 2)
 
-            Text("\(itemCount) items found")
+            Text("\(ByteText.string(total)) total · \(itemCount) item\(itemCount == 1 ? "" : "s") found")
                 .font(.caption)
                 .foregroundStyle(Theme.secondaryText)
 
-            if let selectionCaption {
-                Text(selectionCaption)
+            if selectedCheckCount > 0 {
+                Text("\(selectedCheckCount) check first marked")
                     .font(.caption.weight(.medium))
                     .foregroundStyle(Theme.safeGreen)
-                    .padding(.top, 2)
-            } else if safe > 0 {
-                Text("\(ByteText.string(safe)) safe to clean")
-                    .font(.caption)
-                    .foregroundStyle(Theme.secondaryText)
                     .padding(.top, 2)
             }
 

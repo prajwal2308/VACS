@@ -96,11 +96,15 @@ enum AppScanner {
 
         // Name-based paths (many apps use display name, not bundle id).
         for base in ["\(home)/Library/Caches", "\(home)/Library/Application Support",
-                     "\(home)/Library/Logs"] {
+                     "\(home)/Library/Logs", "/Library/Caches", "/Library/Application Support", "/Library/Logs"] {
             add(kindForBase(base), "\(base)/\(appName)")
+            if !bid.isEmpty {
+                add(kindForBase(base), "\(base)/\(bid)")
+            }
         }
         if !bid.isEmpty {
             add(.applicationSupport, "\(home)/Library/Application Support/\(bid)")
+            add(.applicationSupport, "/Library/Application Support/\(bid)")
         }
 
         // Preference plists matching bundle id prefix (com.docker.* etc.)
@@ -146,12 +150,17 @@ enum AppScanner {
             return folderContentsViaDu(path: path)
         }
 
+        // Single-pass size calculation for all immediate children (1 du process instead of N)
+        let duResults = Shell.du(path, depth: 1)
+        var duMap: [String: Int64] = [:]
+        for res in duResults { duMap[res.path] = res.bytes }
+
         var entries: [FileEntry] = []
         for name in names where !name.hasPrefix(".") {
             let child = (path as NSString).appendingPathComponent(name)
             var isDir: ObjCBool = false
             guard fm.fileExists(atPath: child, isDirectory: &isDir) else { continue }
-            let bytes: Int64 = isDir.boolValue ? Shell.size(child) : fileSize(child)
+            let bytes: Int64 = isDir.boolValue ? (duMap[child] ?? Shell.size(child)) : fileSize(child)
             entries.append(entry(
                 path: child,
                 name: friendlyName(for: child) ?? name,

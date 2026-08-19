@@ -6,16 +6,29 @@ enum PackageFinderScanner {
 
     static func scan() -> [InstalledPackage] {
         var results: [InstalledPackage] = []
-        results += brewFormulae()
-        results += brewCasks()
-        results += npmGlobal()
-        results += pipPackages()
-        results += pathBinaries()
-
+        scanChunks { results += $0 }
         var seen = Set<String>()
         return results
             .filter { seen.insert($0.path).inserted }
             .sorted { $0.sizeBytes > $1.sizeBytes }
+    }
+
+    /// Yields packages incrementally as each source (Homebrew, npm, pip, PATH) completes.
+    static func scanChunks(onChunk: @escaping ([InstalledPackage]) -> Void) {
+        let formula = brewFormulae()
+        if !formula.isEmpty { onChunk(formula) }
+
+        let casks = brewCasks()
+        if !casks.isEmpty { onChunk(casks) }
+
+        let npm = npmGlobal()
+        if !npm.isEmpty { onChunk(npm) }
+
+        let pip = pipPackages()
+        if !pip.isEmpty { onChunk(pip) }
+
+        let pathBins = pathBinaries()
+        if !pathBins.isEmpty { onChunk(pathBins) }
     }
 
     // MARK: - Homebrew
@@ -143,13 +156,28 @@ enum PackageFinderScanner {
     // MARK: - PATH binaries
 
     private static func pathBinaries() -> [InstalledPackage] {
-        let binDirs = [
+        var binDirs = [
+            "/opt/homebrew/bin",
+            "/opt/homebrew/sbin",
             "/usr/local/bin",
             PathUtil.expand("~/.local/bin"),
+            PathUtil.expand("~/.local/share/pnpm"),
+            PathUtil.expand("~/.deno/bin"),
+            PathUtil.expand("~/.pipx/bin"),
+            PathUtil.expand("~/.yarn/bin"),
             PathUtil.expand("~/go/bin"),
             PathUtil.expand("~/.cargo/bin"),
             PathUtil.expand("~/.bun/bin"),
         ]
+
+        // Add NVM node binary paths if present
+        let nvmBase = PathUtil.expand("~/.nvm/versions/node")
+        if fm.fileExists(atPath: nvmBase), let nodeVersions = try? fm.contentsOfDirectory(atPath: nvmBase) {
+            for v in nodeVersions {
+                let bin = (nvmBase as NSString).appendingPathComponent("\(v)/bin")
+                if fm.fileExists(atPath: bin) { binDirs.append(bin) }
+            }
+        }
         var results: [InstalledPackage] = []
         var seen = Set<String>()
 

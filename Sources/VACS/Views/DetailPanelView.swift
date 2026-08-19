@@ -24,6 +24,10 @@ struct DetailPanelView: View {
         selectedEntries.reduce(0) { $0 + $1.sizeBytes }
     }
 
+    private var resetDataBytes: Int64 {
+        allEntries.filter { $0.kind != .application }.reduce(0) { $0 + $1.sizeBytes }
+    }
+
     private var completeUninstallBytes: Int64 {
         allEntries.reduce(0) { $0 + $1.sizeBytes }
     }
@@ -121,24 +125,27 @@ struct DetailPanelView: View {
 
             if let app = installedApp, !app.isSystemApp {
                 Button { showUninstallOptions = true } label: {
-                    Label("Uninstall", systemImage: "trash")
+                    Label("Options", systemImage: "slider.horizontal.3")
                 }
                 .buttonStyle(UninstallPillButtonStyle())
                 .disabled(model.isCleaning || isLoading)
                 .confirmationDialog(
-                    "Uninstall \(app.name)?",
+                    "Actions for \(app.name)",
                     isPresented: $showUninstallOptions,
                     titleVisibility: .visible
                 ) {
+                    Button("Factory Reset App Data (\(ByteText.string(resetDataBytes)))") {
+                        model.requestAppReset()
+                    }
                     Button("Uninstall Completely (\(ByteText.string(completeUninstallBytes)))", role: .destructive) {
                         model.requestUninstall(appOnly: false)
                     }
-                    Button("App Only (\(app.sizeText))") {
+                    Button("App Bundle Only (\(app.sizeText))") {
                         model.requestUninstall(appOnly: true)
                     }
                     Button("Cancel", role: .cancel) {}
                 } message: {
-                    Text("Complete removes containers, caches, and preferences. App only keeps your data if you plan to reinstall.")
+                    Text("Factory Reset wipes caches, preferences, containers, and data while keeping the App bundle intact.")
                 }
             }
         }

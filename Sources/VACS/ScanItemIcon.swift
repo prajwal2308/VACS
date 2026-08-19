@@ -121,6 +121,10 @@ enum ScanItemIcon {
             return .app(app)
         }
 
+        if let app = appFromItem(item) {
+            return .app(app)
+        }
+
         if item.id.hasPrefix("project:") {
             if let node = findApp(named: ["Node.app"]) { return .app(node) }
             return .symbol("chevron.left.forwardslash.chevron.right")
@@ -155,7 +159,7 @@ enum ScanItemIcon {
     }
 
     private static func findApp(named names: [String]) -> String? {
-        for base in ["/Applications", NSHomeDirectory() + "/Applications"] {
+        for base in ["/Applications", NSHomeDirectory() + "/Applications", "/Applications/Utilities"] {
             for name in names {
                 let path = (base as NSString).appendingPathComponent(name)
                 if fm.fileExists(atPath: path) { return path }
@@ -168,6 +172,7 @@ enum ScanItemIcon {
     private static func appFromPath(_ path: String) -> String? {
         let patterns: [(String, [String])] = [
             ("com.docker.docker", ["Docker.app"]),
+            ("orbstack", ["OrbStack.app"]),
             ("com.microsoft.VSCode", ["Visual Studio Code.app"]),
             ("com.todesktop", ["Cursor.app"]),
             ("com.google.Chrome", ["Google Chrome.app"]),
@@ -180,7 +185,47 @@ enum ScanItemIcon {
             ("com.perplexity", ["Perplexity.app"]),
         ]
         for (needle, apps) in patterns {
-            if path.contains(needle), let app = findApp(named: apps) { return app }
+            if path.lowercased().contains(needle), let app = findApp(named: apps) { return app }
+        }
+        return nil
+    }
+
+    private static func appFromItem(_ item: ScanItem) -> String? {
+        let rawName = item.name.components(separatedBy: "·").first?.trimmingCharacters(in: .whitespaces) ?? item.name
+        let appCandidateName = rawName.components(separatedBy: " ").first ?? rawName
+
+        if !appCandidateName.isEmpty && appCandidateName.count > 2 {
+            if let app = findApp(named: ["\(appCandidateName).app", "\(rawName).app"]) {
+                return app
+            }
+            if let match = findAppByStem(appCandidateName) {
+                return match
+            }
+        }
+
+        let lastSegment = (item.path as NSString).lastPathComponent
+        let parts = lastSegment.split(separator: ".")
+        if parts.count >= 2 {
+            for part in parts.reversed() {
+                let s = String(part)
+                if s.count > 3 && s != "appex" && s != "ServiceExtension" && s != "Intents" && s != "dev" && s != "com" && s != "net" && s != "org" {
+                    if let app = findAppByStem(s) { return app }
+                }
+            }
+        }
+        return nil
+    }
+
+    private static func findAppByStem(_ stem: String) -> String? {
+        let lower = stem.lowercased()
+        for base in ["/Applications", NSHomeDirectory() + "/Applications", "/Applications/Utilities"] {
+            guard let contents = try? fm.contentsOfDirectory(atPath: base) else { continue }
+            for name in contents where name.hasSuffix(".app") {
+                let cleanApp = name.replacingOccurrences(of: ".app", with: "")
+                if cleanApp.lowercased() == lower || cleanApp.lowercased().contains(lower) || lower.contains(cleanApp.lowercased()) {
+                    return (base as NSString).appendingPathComponent(name)
+                }
+            }
         }
         return nil
     }
