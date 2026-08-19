@@ -96,6 +96,7 @@ enum VACSection: String, CaseIterable, Identifiable {
 
     static func section(forCategory category: String) -> VACSection? {
         if category == "Unknown heavy folders" { return .heavyFolders }
+        if category == "Caches" || category == "Logs" { return .system }
         return scannable.first { $0.ruleCategory == category }
     }
 

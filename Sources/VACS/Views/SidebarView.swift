@@ -17,13 +17,17 @@ struct SidebarView: View {
                     SidebarNavRow(section: .installedPackages)
 
                     sectionHeader("Cleanup")
-                    sectionHeader("Advanced Tools", subtle: true)
-                    ForEach(VACSection.advancedTools) { section in
-                        SidebarNavRow(section: section)
+                    if !visibleAdvancedTools.isEmpty {
+                        sectionHeader("Advanced Tools", subtle: true)
+                        ForEach(visibleAdvancedTools) { section in
+                            SidebarNavRow(section: section)
+                        }
                     }
-                    sectionHeader("More", subtle: true)
-                    ForEach(VACSection.generalCleanup) { section in
-                        SidebarNavRow(section: section)
+                    if !visibleGeneralCleanup.isEmpty {
+                        sectionHeader("More", subtle: true)
+                        ForEach(visibleGeneralCleanup) { section in
+                            SidebarNavRow(section: section)
+                        }
                     }
                     SidebarNavRow(section: .trash)
 
@@ -40,6 +44,18 @@ struct SidebarView: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Theme.elevated)
+    }
+
+    private var visibleAdvancedTools: [VACSection] {
+        VACSection.advancedTools.filter { section in
+            !model.scannedSections.contains(section) || model.totalBytes(for: section) > 0 || model.selectedSection == section
+        }
+    }
+
+    private var visibleGeneralCleanup: [VACSection] {
+        VACSection.generalCleanup.filter { section in
+            !model.scannedSections.contains(section) || model.totalBytes(for: section) > 0 || model.selectedSection == section
+        }
     }
 
     private var header: some View {
