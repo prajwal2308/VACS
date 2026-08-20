@@ -2,7 +2,7 @@
 
 How **VACS** stacks up against the open-source Mac cleaners developers actually use: [PureMac](https://github.com/momenbasel/PureMac), [Purge](https://github.com/jithin-sabu/purge-app), [ClearDisk](https://github.com/bysiber/cleardisk), [Cacheout](https://github.com/cacheout-app/cacheout), [SweepYourMac](https://github.com/pyramidion-solutions/sweep-your-mac), and [Mintify](https://github.com/yellowstudio-labs/mintify-app).
 
-Last updated for **VACS** as of the current `main` branch (95 rules in `rules.json`, Smart Scan dashboard, Trash browser, Apps category).
+Last updated for **VACS** as of the current `main` branch (96 rules in `rules.json`, Smart Scan dashboard, Trash browser, Apps category).
 
 ---
 
@@ -16,7 +16,7 @@ Last updated for **VACS** as of the current `main` branch (95 rules in `rules.js
 | **Cacheout** | [cacheout-app/cacheout](https://github.com/cacheout-app/cacheout) | ~2 | Proprietary | Scanner logic — sparse files, parallel scan, MCP companion |
 | **SweepYourMac** | [pyramidion-solutions/sweep-your-mac](https://github.com/pyramidion-solutions/sweep-your-mac) | ~1 | Proprietary | Actor-based scanners, safety guards |
 | **Mintify** | [yellowstudio-labs/mintify-app](https://github.com/yellowstudio-labs/mintify-app) | ~10 | Proprietary | App Store / sandbox path — no FDA, treemap, duplicates |
-| **VACS** | [prajwal2308/VACS](https://github.com/prajwal2308/VACS) | — | Proprietary | Dev-first, auditable rules, copy-commands for containers, honest sizing |
+| **VACS** | [prajwal2308/VACS](https://github.com/prajwal2308/VACS) | — | MIT | Dev-first, auditable rules, copy-commands for containers, honest sizing |
 
 > **License note:** ClearDisk is **MIT**, not GPL-3. GPL-3 applies to a different project (DevCleaner).
 
@@ -43,7 +43,7 @@ Legend: ✅ Full · ⚠️ Partial · ❌ Not present
 | Plain-English per-item notes | ⚠️ | ✅ | ✅ | ⚠️ | ❌ | ❌ | ✅ |
 | Folder drill-down + file list | ✅ | ⚠️ | ⚠️ | ❌ | ❌ | ✅ treemap | ✅ |
 | **Dev cache coverage** |
-| Known dev cache paths (rules DB) | ⚠️ ~40 | ✅ broad | ✅ 63 | ⚠️ 15 | ⚠️ | ⚠️ | ✅ **95** |
+| Known dev cache paths (rules DB) | ⚠️ ~40 | ✅ broad | ✅ 63 | ⚠️ 15 | ⚠️ | ⚠️ | ✅ **96** |
 | Open auditable rules file | ❌ | ⚠️ | ❌ | ❌ | ❌ | ❌ | ✅ `rules.json` |
 | `node_modules` / project artifact scan | ❌ | ✅ | ✅ 23 types | ✅ | ✅ | ❌ | ✅ |
 | Docker real disk size (sparse/APFS) | ❌ | ❌ | ❌ | ✅ | ❌ | ❌ | ✅ |
@@ -52,7 +52,7 @@ Legend: ✅ Full · ⚠️ Partial · ❌ Not present
 | Unknown heavy folder discovery | ❌ | ❌ hides | ❌ | ❌ | ❌ | ❌ | ✅ opt-in |
 | **Apps & uninstall** |
 | Installed apps browser | ✅ | ❌ | ❌ | ❌ | ❌ | ✅ | ✅ |
-| Full app uninstaller engine | ✅ 10-level | ❌ | ❌ | ❌ | ❌ | ✅ | ❌ |
+| Full app uninstaller engine | ✅ 10-level | ❌ | ❌ | ❌ | ❌ | ✅ | ✅ |
 | Orphan / leftover finder | ✅ | ❌ | ❌ | ❌ | ✅ | ❌ | ❌ |
 | Consumer app caches (Zoom, Discord…) | ⚠️ | ✅ | ⚠️ | ❌ | ❌ | ❌ | ✅ Apps category |
 | **Files & duplicates** |

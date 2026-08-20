@@ -32,6 +32,7 @@ struct OverviewView: View {
                 }
             }
             .padding(14)
+            .padding(.bottom, 40)
             .frame(maxWidth: 900)
             .frame(maxWidth: .infinity)
         }
