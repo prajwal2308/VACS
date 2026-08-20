@@ -1,0 +1,424 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>VACS — See what's eating your Mac</title>
+<meta name="description" content="A native macOS disk cleaner for developers. Every path named in plain English, every rule auditable, everything to the Trash. Free and open source." />
+<meta name="theme-color" content="#0c0e14" id="themeColor" />
+<link rel="icon" href="assets/img/icon.png" />
+<link rel="apple-touch-icon" href="assets/img/icon@512.png" />
+
+<meta property="og:type" content="website" />
+<meta property="og:title" content="VACS — See what's eating your Mac" />
+<meta property="og:description" content="A native macOS disk cleaner for developers. Plain English. Trash-only. Zero telemetry." />
+<meta property="og:image" content="https://raw.githubusercontent.com/prajwal2308/VACS/main/Assets/icon-1024.png" />
+<meta name="twitter:card" content="summary_large_image" />
+
+<link rel="preconnect" href="https://api.github.com" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="assets/css/tokens.css" />
+<script>
+  /* applied before first paint so the page never flashes the wrong ground */
+  (function () {
+    try {
+      var t = localStorage.getItem("vacs:theme");
+      if (t === "light") document.documentElement.setAttribute("data-theme", "light");
+    } catch (e) {}
+  })();
+</script>
+<link rel="stylesheet" href="assets/css/styles.css" />
+</head>
+<body>
+
+<a class="skip" href="#hero">Skip to content</a>
+
+<!-- ─────────── N13 · inline ⌘K pill ─────────── -->
+<header class="nav" id="nav">
+  <div class="nav__inner">
+    <a class="nav__brand" href="#hero">
+      <img src="assets/img/icon.png" alt="" width="26" height="26" decoding="async" />
+      <span class="nav__word">VACS</span>
+      <span class="nav__ver mono" data-gh="version-pill">—</span>
+    </a>
+
+    <nav class="nav__right" aria-label="Sections">
+      <a class="nav__link" href="#tour">Tour</a>
+      <a class="nav__link" href="#compare">Compare</a>
+      <a class="nav__link" href="#install">Install</a>
+      <a class="nav__link" href="#changelog">Changelog</a>
+      <button class="themetoggle" id="themeToggle" type="button" role="switch"
+              aria-checked="false" aria-label="Switch to light mode">
+        <svg class="themetoggle__moon" viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><path d="M16.5 12.4A7 7 0 0 1 7.6 3.5a7 7 0 1 0 8.9 8.9Z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
+        <svg class="themetoggle__sun" viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><circle cx="10" cy="10" r="3.6" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M10 2.4v1.7M10 15.9v1.7M17.6 10h-1.7M4.1 10H2.4M15.4 4.6l-1.2 1.2M5.8 14.2l-1.2 1.2M15.4 15.4l-1.2-1.2M5.8 5.8 4.6 4.6" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+      </button>
+      <a class="btn btn--accent btn--sm" href="#install" data-gh="nav-download">Download</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+
+<!-- ─────────── H2 · split diptych ─────────── -->
+<section class="hero" id="hero">
+  <div class="wrap hero__grid">
+    <div class="hero__text">
+      <h1 class="hero__display">See what's eating your&nbsp;Mac.</h1>
+      <p class="hero__lede">
+        A native disk cleaner for developers. It names every folder in plain English,
+        marks what's actually safe, and moves it to the Trash — where you can put it
+        back until you empty it.
+      </p>
+
+      <div class="hero__actions">
+        <a class="btn btn--accent btn--lg" href="#install" data-gh="hero-download" download>
+          <svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><path d="M10 3v9m0 0 3.4-3.4M10 12 6.6 8.6M4 15.5h12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <span data-gh="dl-label">Download for macOS</span>
+        </a>
+        <a class="btn btn--quiet btn--lg" href="#source">Build from source</a>
+      </div>
+
+      <dl class="hero__meta mono">
+        <div><dt>Version</dt><dd data-gh="hero-ver">—</dd></div>
+        <div><dt>Size</dt><dd data-gh="hero-size">—</dd></div>
+        <div><dt>Requires</dt><dd>macOS 14+ · arm64</dd></div>
+        <div><dt>Licence</dt><dd>MIT</dd></div>
+      </dl>
+    </div>
+
+    <figure class="shot shot--hero">
+      <img src="assets/img/shot-scan.png" width="722" height="442"
+           alt="VACS after a scan: 2.0 GB ready to reclaim, with per-category review cards for Developer, Package Managers, Containers, AI Tools and more."
+           fetchpriority="high" decoding="async" />
+      <figcaption class="mono">A real scan · 2.0 GB safe to reclaim</figcaption>
+    </figure>
+  </div>
+
+  <!-- honest facts only: every number here is verifiable in the repo -->
+  <div class="wrap facts mono">
+    <span><b data-gh="rule-count">96</b> audited paths</span>
+    <span><b>8</b> scan categories</span>
+    <span><b>0</b> network requests</span>
+    <span><b>Trash</b> by default</span>
+  </div>
+</section>
+
+<!-- ─────────── Workbench tour · F5 annotated captures ─────────── -->
+<section class="section" id="tour">
+  <div class="wrap">
+    <header class="head-hang">
+      <h2>Scan once. Read what it found. Keep what you want.</h2>
+      <p class="head-hang__lede">Three screens do the whole job. These are real captures, not mockups.</p>
+    </header>
+  </div>
+
+  <div class="wrap tour">
+    <article class="tour__item reveal">
+      <figure class="shot">
+        <img src="assets/img/shot-overview.png" width="1472" height="889" loading="lazy" decoding="async"
+             alt="The VACS Overview screen: a sidebar of categories down the left, the Smart Scan panel on the right." />
+      </figure>
+      <div class="tour__note">
+        <h3>One pass across everything.</h3>
+        <p>Smart Scan sweeps every category and returns a single reclaimable total, broken down into review cards. Tick the categories you trust, leave the rest, clean in one pass.</p>
+        <p class="tour__detail mono">Developer · Packages · Browsers · Containers · AI Tools · Apps · System · Heavy</p>
+      </div>
+    </article>
+
+    <article class="tour__item tour__item--flip reveal">
+      <figure class="shot">
+        <img src="assets/img/shot-rules.png" width="800" height="446" loading="lazy" decoding="async"
+             alt="Package Managers detail view: Homebrew downloads, pip cache, uv cache and npm cache each labelled SAFE TO CLEAN with a plain-English note, and nvm versions labelled CHECK FIRST." />
+      </figure>
+      <div class="tour__note">
+        <h3>Every row explains itself.</h3>
+        <p>No folder is listed without a reason. “Downloaded bottles/formulae. Safe to clear; <code>brew cleanup</code> does the same.” You get the path, the size, the last-modified date, and the call.</p>
+        <p class="tour__detail mono">nvm versions → <span class="lvl lvl--check">check first</span> — reinstalling Node takes a while.</p>
+      </div>
+    </article>
+
+    <article class="tour__item reveal">
+      <figure class="shot">
+        <img src="assets/img/shot-packages.png" width="722" height="442" loading="lazy" decoding="async"
+             alt="Installed Packages view listing globally installed binaries in a grid, each with a copy-command action." />
+      </figure>
+      <div class="tour__note">
+        <h3>Drill down to the file.</h3>
+        <p>Open any folder and keep going until you hit real files. Installed apps expose their caches, containers, preferences and logs; installed packages hand you the correct uninstall command for the clipboard.</p>
+        <p class="tour__detail mono">pip uninstall torch · brew uninstall — copied, not run.</p>
+      </div>
+    </article>
+  </div>
+</section>
+
+<!-- ─────────── the one dark band · safety model ─────────── -->
+<section class="band" id="safety">
+  <div class="wrap">
+    <header class="head-hang head-hang--dark">
+      <h2>Four levels. Nothing is silently erased.</h2>
+      <p class="head-hang__lede">Every rule in the file carries one of these. The level decides what the interface will even offer you.</p>
+    </header>
+
+    <ol class="levels">
+      <li class="levels__row">
+        <span class="lvl lvl--safe">safe</span>
+        <div class="levels__body">
+          <h3>One click, straight to the Trash.</h3>
+          <p>Regenerated automatically by the tool that made it.</p>
+        </div>
+        <code class="mono">~/Library/Developer/Xcode/DerivedData</code>
+      </li>
+      <li class="levels__row">
+        <span class="lvl lvl--check">check first</span>
+        <div class="levels__body">
+          <h3>Confirm, with the reason shown.</h3>
+          <p>Safe to remove, but you'll pay to rebuild or re-download it.</p>
+        </div>
+        <code class="mono">~/go/pkg/mod</code>
+      </li>
+      <li class="levels__row">
+        <span class="lvl lvl--cmd">command</span>
+        <div class="levels__body">
+          <h3>You get the command. There is no delete button.</h3>
+          <p>VACS refuses to touch a live VM disk. It copies the official command instead.</p>
+        </div>
+        <code class="mono">docker system prune -a</code>
+      </li>
+      <li class="levels__row">
+        <span class="lvl lvl--never">never</span>
+        <div class="levels__body">
+          <h3>Measured, never offered.</h3>
+          <p>Shown so the number adds up. No action exists for it.</p>
+        </div>
+        <code class="mono">system-critical paths</code>
+      </li>
+    </ol>
+
+    <p class="band__foot">
+      Normal cleanup moves items to the macOS Trash. Permanent deletion happens only when you
+      choose <b>Delete Permanently</b> or <b>Empty Trash</b> inside the Trash view — and no step
+      anywhere asks for <code class="mono">sudo</code>.
+    </p>
+  </div>
+</section>
+
+<!-- ─────────── comparison ─────────── -->
+<section class="section" id="compare">
+  <div class="wrap">
+    <header class="head-hang">
+      <h2>How it compares.</h2>
+      <p class="head-hang__lede">Against the open-source Mac cleaners developers actually use — including the three things VACS deliberately doesn't do.</p>
+    </header>
+
+    <div class="tablewrap">
+      <table class="cmp">
+        <caption class="visually-hidden">Feature comparison between VACS and other Mac disk cleaners</caption>
+        <thead>
+          <tr>
+            <th scope="col">Feature</th>
+            <th scope="col">PureMac</th><th scope="col">Purge</th><th scope="col">ClearDisk</th>
+            <th scope="col">Cacheout</th><th scope="col">Sweep</th><th scope="col">Mintify</th>
+            <th scope="col" class="cmp__us">VACS</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><th scope="row">Open auditable rules file</th><td>—</td><td class="p">partial</td><td>—</td><td>—</td><td>—</td><td>—</td><td class="cmp__us y">rules.json</td></tr>
+          <tr><th scope="row">Known dev cache paths</th><td>~40</td><td>broad</td><td>63</td><td>15</td><td class="p">partial</td><td class="p">partial</td><td class="cmp__us y"><span data-gh="rule-count">96</span></td></tr>
+          <tr><th scope="row">Docker real size (sparse/APFS)</th><td>—</td><td>—</td><td>—</td><td class="y">yes</td><td>—</td><td>—</td><td class="cmp__us y">yes</td></tr>
+          <tr><th scope="row">Copy CLI instead of deleting</th><td>—</td><td class="p">partial</td><td>—</td><td>—</td><td>—</td><td>—</td><td class="cmp__us y">yes</td></tr>
+          <tr><th scope="row">DerivedData per-project breakdown</th><td class="p">partial</td><td>—</td><td class="y">yes</td><td>—</td><td>—</td><td>—</td><td class="cmp__us y">yes</td></tr>
+          <tr><th scope="row">Plain-English per-item notes</th><td class="p">partial</td><td class="y">yes</td><td class="y">yes</td><td class="p">partial</td><td>—</td><td>—</td><td class="cmp__us y">yes</td></tr>
+          <tr><th scope="row">Full app uninstaller</th><td class="y">yes</td><td>—</td><td>—</td><td>—</td><td>—</td><td class="y">yes</td><td class="cmp__us n">no</td></tr>
+          <tr><th scope="row">Duplicate finder</th><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td class="y">yes</td><td class="cmp__us n">no</td></tr>
+          <tr><th scope="row">Large files finder</th><td class="y">yes</td><td class="y">yes</td><td class="y">yes</td><td>—</td><td class="y">yes</td><td class="y">yes</td><td class="cmp__us n">no</td></tr>
+          <tr><th scope="row">Licence</th><td>Proprietary</td><td>Proprietary</td><td>MIT</td><td>Proprietary</td><td>Proprietary</td><td>Proprietary</td><td class="cmp__us y">MIT</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <a class="link-arrow" href="https://github.com/prajwal2308/VACS/blob/main/docs/COMPARISON.md" target="_blank" rel="noopener">
+      The full matrix — 60+ rows
+      <svg viewBox="0 0 20 20" width="13" height="13" aria-hidden="true"><path d="M6 14 14 6m0 0H7m7 0v7" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </a>
+  </div>
+</section>
+
+<!-- ─────────── F4 · step sequence (genuinely ordinal) ─────────── -->
+<section class="section section--tight" id="install">
+  <div class="wrap">
+    <header class="head-hang">
+      <h2>Install.</h2>
+      <p class="head-hang__lede">Four steps, about a minute. macOS 14 Sonoma or later on Apple Silicon.</p>
+    </header>
+
+    <ol class="steps">
+      <li class="step">
+        <span class="step__stage mono">1.0</span>
+        <div class="step__body">
+          <h3>Download the disk image.</h3>
+          <p>Built from the tagged commit and attached to the GitHub release.</p>
+          <a class="btn btn--accent" href="https://github.com/prajwal2308/VACS/releases/latest" data-gh="step-download" download>
+            <svg viewBox="0 0 20 20" width="15" height="15" aria-hidden="true"><path d="M10 3v9m0 0 3.4-3.4M10 12 6.6 8.6M4 15.5h12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <span data-gh="step-dl-label">VACS.dmg</span>
+          </a>
+          <p class="step__meta mono" data-gh="step-dl-meta">latest release</p>
+        </div>
+      </li>
+
+      <li class="step">
+        <span class="step__stage mono">2.0</span>
+        <div class="step__body">
+          <h3>Drag VACS.app into Applications.</h3>
+          <p>Open the DMG and drop it in. Then eject the image.</p>
+        </div>
+      </li>
+
+      <li class="step">
+        <span class="step__stage mono">3.0</span>
+        <div class="step__body">
+          <h3>Clear the quarantine flag on first launch.</h3>
+          <p>Builds are ad-hoc signed, not Apple-notarized — that needs the $99/year Developer Program. Right-click the app and choose <b>Open</b>, or run this once:</p>
+          <div class="code" data-copy>
+            <p class="code__label mono">Terminal</p>
+            <pre class="mono"><code>xattr -cr /Applications/VACS.app</code><span class="caret" aria-hidden="true"></span></pre>
+            <button class="code__copy mono" type="button">Copy</button>
+          </div>
+        </div>
+      </li>
+
+      <li class="step">
+        <span class="step__stage mono">4.0</span>
+        <div class="step__body">
+          <h3>Grant Full Disk Access, then scan.</h3>
+          <p>System Settings → Privacy &amp; Security → Full Disk Access → enable <b>VACS</b>. macOS protects <code class="mono">~/Library</code>, so without it the sizes read as zero. Then press <b>Smart Scan</b> on Overview.</p>
+        </div>
+      </li>
+    </ol>
+
+    <div class="source" id="source">
+      <h3>Or build it yourself.</h3>
+      <p>Plain <code class="mono">swiftc</code> — Command Line Tools only, no Xcode project, no package manager.</p>
+      <div class="code" data-copy>
+        <p class="code__label mono">Terminal</p>
+        <pre class="mono"><code>git clone https://github.com/prajwal2308/VACS.git
+cd VACS
+./scripts/build-app.sh --run</code><span class="caret" aria-hidden="true"></span></pre>
+        <button class="code__copy mono" type="button">Copy</button>
+      </div>
+      <p class="source__out mono">→ VACS self-test: OK (<span data-gh="rule-count">96</span> rules loaded)</p>
+    </div>
+  </div>
+</section>
+
+<!-- ─────────── changelog · live ─────────── -->
+<section class="section" id="changelog">
+  <div class="wrap">
+    <header class="head-hang">
+      <h2>Changelog.</h2>
+      <p class="head-hang__lede">Read from the GitHub Releases API when the page loads. Nothing here is copied by hand.</p>
+    </header>
+    <div id="releases" class="rels">
+      <p class="rels__loading mono">Loading releases…</p>
+    </div>
+    <a class="link-arrow" href="https://github.com/prajwal2308/VACS/releases" target="_blank" rel="noopener">
+      Every release on GitHub
+      <svg viewBox="0 0 20 20" width="13" height="13" aria-hidden="true"><path d="M6 14 14 6m0 0H7m7 0v7" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </a>
+  </div>
+</section>
+
+<!-- ─────────── FAQ ─────────── -->
+<section class="section section--tight" id="faq">
+  <div class="wrap wrap--narrow">
+    <header class="head-hang">
+      <h2>Fair questions.</h2>
+    </header>
+    <div class="faq">
+      <details>
+        <summary>Can it permanently delete my files?</summary>
+        <div class="faq__body"><p>Not during normal cleanup — everything moves to the macOS Trash, and Put Back works until you empty it. Permanent deletion only happens if you explicitly pick <b>Delete Permanently</b> or <b>Empty Trash</b> in the Trash view.</p></div>
+      </details>
+      <details>
+        <summary>Why does macOS say it's from an unidentified developer?</summary>
+        <div class="faq__body"><p>Releases are ad-hoc signed, not notarized — notarization requires Apple's $99/year Developer Program. Right-click → <b>Open</b> once, or run <code class="mono">xattr -cr /Applications/VACS.app</code>.</p></div>
+      </details>
+      <details>
+        <summary>Why does it need Full Disk Access?</summary>
+        <div class="faq__body"><p>macOS shields <code class="mono">~/Library</code> and app container directories from ordinary processes. Without the grant, VACS can't measure the caches that are actually costing you space. It's one toggle, and the app still makes no network calls.</p></div>
+      </details>
+      <details>
+        <summary>Does it phone home?</summary>
+        <div class="faq__body"><p>No analytics, no update pings, no crash reporting, no cloud. Zero outbound requests — the source is right there if you want to check.</p></div>
+      </details>
+      <details>
+        <summary>Does it work on Intel Macs?</summary>
+        <div class="faq__body"><p>Release builds target Apple Silicon. On Intel, build from source with <code class="mono">./scripts/build-app.sh</code>.</p></div>
+      </details>
+      <details>
+        <summary>What does it cost?</summary>
+        <div class="faq__body"><p>Nothing. MIT licensed, and it will stay that way.</p></div>
+      </details>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<!-- ─────────── footer ─────────── -->
+<footer class="foot">
+  <div class="wrap">
+    <div class="foot__top">
+      <div class="foot__brand">
+        <img src="assets/img/icon.png" alt="" width="34" height="34" decoding="async" />
+        <p class="foot__tag">See what's eating your Mac.<br /><span>Native macOS disk cleaner for developers.</span></p>
+        <a class="btn btn--accent btn--sm" href="https://github.com/prajwal2308/VACS/releases/latest" data-gh="foot-download" download>Download for macOS</a>
+      </div>
+
+      <nav class="foot__cols" aria-label="Footer">
+        <div>
+          <h3>Product</h3>
+          <a href="#tour">Tour</a>
+          <a href="#compare">Comparison</a>
+          <a href="#install">Install</a>
+          <a href="#changelog">Changelog</a>
+        </div>
+        <div>
+          <h3>Docs</h3>
+          <a href="https://github.com/prajwal2308/VACS/blob/main/docs/INSTALL.md" target="_blank" rel="noopener">Install guide</a>
+          <a href="https://github.com/prajwal2308/VACS/blob/main/docs/PRIVACY.md" target="_blank" rel="noopener">Privacy</a>
+          <a href="https://github.com/prajwal2308/VACS/blob/main/SECURITY.md" target="_blank" rel="noopener">Security</a>
+          <a href="https://github.com/prajwal2308/VACS/blob/main/Sources/VACS/Resources/rules.json" target="_blank" rel="noopener">Cleanup rules</a>
+        </div>
+        <div>
+          <h3>Project</h3>
+          <a href="https://github.com/prajwal2308/VACS" target="_blank" rel="noopener">Source on GitHub</a>
+          <a href="https://github.com/prajwal2308/VACS/issues" target="_blank" rel="noopener">Report an issue</a>
+          <a href="https://github.com/prajwal2308/VACS/releases" target="_blank" rel="noopener">All releases</a>
+          <a href="https://github.com/prajwal2308/VACS/blob/main/LICENSE" target="_blank" rel="noopener">MIT Licence</a>
+        </div>
+      </nav>
+    </div>
+
+    <div class="foot__base mono">
+      <span>© 2026 Prajwal · MIT Licensed</span>
+      <span>Swift &amp; SwiftUI · macOS 14+ · <span data-gh="version-pill">—</span></span>
+    </div>
+  </div>
+</footer>
+
+<!-- ─────────── C4 · sticky download bar ─────────── -->
+<aside class="stickybar" id="stickybar" hidden>
+  <div class="wrap stickybar__inner">
+    <p class="stickybar__text">
+      <b data-gh="sticky-title">VACS</b>
+      <span class="mono" data-gh="sticky-meta">macOS 14+ · Apple Silicon · MIT</span>
+    </p>
+    <a class="btn btn--accent btn--sm" href="https://github.com/prajwal2308/VACS/releases/latest" data-gh="sticky-download" download>Download</a>
+  </div>
+</aside>
+
+<script src="assets/js/app.js" defer></script>
+</body>
+</html>
