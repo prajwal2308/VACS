@@ -6,8 +6,6 @@ on:
     paths:
       - 'site/**'
       - '.github/workflows/pages.yml'
-  release:
-    types: [published]      # republish so the site is warm right after a release
   workflow_dispatch:
 
 permissions:
