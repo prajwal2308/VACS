@@ -24,6 +24,7 @@
   /* applied before first paint so the page never flashes the wrong ground */
   (function () {
     try {
+      document.documentElement.classList.add("js");
       var t = localStorage.getItem("vacs:theme");
       if (t === "light") document.documentElement.setAttribute("data-theme", "light");
     } catch (e) {}
