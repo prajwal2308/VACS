@@ -53,6 +53,7 @@ struct DetailPanelView: View {
                 ScrollView {
                     DetailPanelSkeleton()
                 }
+                .safeAreaInset(edge: .bottom) { Color.clear.frame(height: 96) }
             } else if groups.isEmpty {
                 Spacer()
                 VStack(spacing: 8) {
@@ -73,6 +74,7 @@ struct DetailPanelView: View {
                     .padding(10)
                     .padding(.bottom, 40)
                 }
+                .safeAreaInset(edge: .bottom) { Color.clear.frame(height: 96) }
             }
             Divider()
             footer

@@ -473,6 +473,7 @@ struct CategoryItemsSheet: View {
                 }
                 .padding(20)
             }
+            .safeAreaInset(edge: .bottom) { Color.clear.frame(height: 96) }
 
             Divider()
 

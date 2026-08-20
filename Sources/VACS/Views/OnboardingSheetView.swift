@@ -55,6 +55,7 @@ struct OnboardingSheetView: View {
                 .padding(24)
                 .frame(maxWidth: 420)
             }
+            .safeAreaInset(edge: .bottom) { Color.clear.frame(height: 96) }
         }
         .frame(width: 460, height: 520)
         .background(Theme.bg)
