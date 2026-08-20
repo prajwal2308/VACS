@@ -51,6 +51,7 @@ struct InstalledAppsView: View {
                 ScrollView {
                     SkeletonAppGrid()
                 }
+                .safeAreaInset(edge: .bottom) { Color.clear.frame(height: 96) }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
                 ScrollView {
@@ -65,6 +66,7 @@ struct InstalledAppsView: View {
                     .padding(12)
                     .padding(.bottom, 40)
                 }
+                .safeAreaInset(edge: .bottom) { Color.clear.frame(height: 96) }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
         }

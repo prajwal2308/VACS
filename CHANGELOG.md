@@ -2,6 +2,12 @@
 
 All notable changes to VACS are documented here.
 
+## [0.2.2] — 2026-08-20
+
+### Fixed
+
+- **Scroll views cut off at the bottom (properly this time)** — every scrollable page now reserves a trailing block of empty space via `safeAreaInset`, so the final row always clears the window edge. The 0.2.1 padding fix was not sufficient.
+
 ## [0.2.1] — 2026-08-20
 
 ### Fixed
