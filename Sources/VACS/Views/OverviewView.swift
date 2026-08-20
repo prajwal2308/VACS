@@ -36,6 +36,7 @@ struct OverviewView: View {
             .frame(maxWidth: 900)
             .frame(maxWidth: .infinity)
         }
+        .safeAreaInset(edge: .bottom) { Color.clear.frame(height: 96) }
         .background(Theme.bg)
     }
 
