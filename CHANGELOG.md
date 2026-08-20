@@ -2,6 +2,16 @@
 
 All notable changes to VACS are documented here.
 
+## [0.2.1] — 2026-08-20
+
+### Fixed
+
+- **Scroll views cut off at the bottom** — the last row in Overview, Installed Apps, Installed Packages, AI & Skills, category detail, folder drill-down and Trash sat under the window edge and could not be scrolled into view. All scrollable content now carries bottom clearance.
+
+### Changed
+
+- **docs/COMPARISON.md** corrected — VACS is MIT licensed (not proprietary), the rules count is current, and the full app uninstaller is marked as supported.
+
 ## [0.1.3] — 2026-08-09
 
 ### Added

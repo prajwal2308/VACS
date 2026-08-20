@@ -71,6 +71,7 @@ struct DetailPanelView: View {
                         }
                     }
                     .padding(10)
+                    .padding(.bottom, 40)
                 }
             }
             Divider()

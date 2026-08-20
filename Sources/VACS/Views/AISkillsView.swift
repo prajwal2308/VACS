@@ -48,6 +48,7 @@ struct AISkillsView: View {
                         }
                     }
                     .padding(12)
+                    .padding(.bottom, 40)
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             }

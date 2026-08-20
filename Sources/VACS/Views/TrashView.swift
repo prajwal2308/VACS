@@ -130,6 +130,7 @@ struct TrashView: View {
                 }
             }
             .padding(12)
+            .padding(.bottom, 40)
         }
     }
 
