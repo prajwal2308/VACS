@@ -1,0 +1,135 @@
+/* Hallmark · tokens · theme: Cobalt (dark-first) · genre: modern-minimal
+ * Portable design system for VACS. Every colour and font in the build
+ * references a token from this file — no inline values anywhere.
+ *
+ * Dark is the default surface; [data-theme="light"] swaps the ground back.
+ * The anchor hue never moves between modes (258, cool cobalt) — only
+ * lightness and chroma do, per the dark-mode recipe: elevation is carried
+ * by a LIGHTER surface, never by a shadow or a coloured glow.
+ */
+
+:root {
+  color-scheme: dark;
+
+  /* ── colour · dark (default) ──────────────────────────── */
+  --color-paper:      oklch(15%   0.012 258);   /* cool ink ground, never #000 */
+  --color-paper-2:    oklch(18.5% 0.014 258);   /* +3.5% L per elevation step */
+  --color-paper-3:    oklch(22%   0.016 258);
+  --color-rule:       oklch(27%   0.014 258);   /* hairlines still do the work */
+  --color-rule-2:     oklch(34%   0.016 258);
+  --color-muted:      oklch(64%   0.018 256);
+  --color-ink-2:      oklch(84%   0.012 256);   /* body */
+  --color-ink:        oklch(95%   0.006 250);   /* display, never #fff */
+
+  /* the band inverts: on a dark page it reads as the ELEVATED surface */
+  --color-graphite:   oklch(21%   0.016 258);
+  --color-graphite-2: oklch(28%   0.018 258);
+  --color-on-dark:    oklch(95%   0.006 250);
+  --color-on-dark-2:  oklch(76%   0.014 254);
+
+  --color-accent:     oklch(62%   0.170 258);   /* lifted + de-chroma'd for dark */
+  --color-accent-2:   oklch(69%   0.150 258);
+  --color-accent-ink: oklch(16%   0.020 258);   /* dark label on a bright fill */
+  --color-accent-wash:oklch(25%   0.050 256);
+  --color-focus:      oklch(70%   0.160 258);
+
+  /* alpha modifiers — overlays and shadows only, never palette entries */
+  --shadow-whisper:   none;                     /* no glow on dark surfaces */
+  --shadow-panel:     0 24px 60px -30px oklch(0% 0 0 / 0.6);
+  --scrim:            oklch(10% 0.012 258 / 0.62);
+
+  /* safety levels — the word is the signal; colour only reinforces it */
+  --color-safe:       oklch(76%   0.150 158);
+  --color-safe-wash:  oklch(26%   0.050 158);
+  --color-check:      oklch(80%   0.130 80);
+  --color-check-wash: oklch(27%   0.045 80);
+  --color-cmd:        oklch(74%   0.150 258);
+  --color-cmd-wash:   oklch(26%   0.055 258);
+  --color-never:      oklch(74%   0.140 25);
+  --color-never-wash: oklch(27%   0.050 25);
+}
+
+/* ── colour · light ───────────────────────────────────── */
+[data-theme="light"] {
+  color-scheme: light;
+
+  --color-paper:      oklch(98.5% 0.004 250);   /* engineered near-white, never #fff */
+  --color-paper-2:    oklch(96.4% 0.006 252);
+  --color-paper-3:    oklch(93.8% 0.008 252);
+  --color-rule:       oklch(89.5% 0.008 252);   /* hairlines do the structural work */
+  --color-rule-2:     oklch(82%   0.012 254);
+  --color-muted:      oklch(56%   0.018 256);
+  --color-ink-2:      oklch(38%   0.018 257);   /* body */
+  --color-ink:        oklch(24%   0.020 258);   /* display, never #000 */
+
+  --color-graphite:   oklch(21%   0.016 260);   /* the one dark band */
+  --color-graphite-2: oklch(26%   0.018 260);
+  --color-on-dark:    oklch(93%   0.006 250);
+  --color-on-dark-2:  oklch(72%   0.012 254);
+
+  --color-accent:     oklch(52%   0.205 258);   /* the single cobalt signal */
+  --color-accent-2:   oklch(45%   0.195 258);
+  --color-accent-ink: oklch(99%   0.003 250);
+  --color-accent-wash:oklch(95%   0.030 256);
+  --color-focus:      oklch(52%   0.205 258);
+
+  /* alpha modifiers — overlays and shadows only, never palette entries */
+  --shadow-whisper:   0 1px 2px oklch(24% 0.02 258 / 0.05);
+  --shadow-panel:     0 24px 60px -30px oklch(24% 0.02 258 / 0.4);
+  --scrim:            oklch(24% 0.02 258 / 0.34);
+
+  /* safety levels — carry a shape/label too, never colour alone */
+  --color-safe:       oklch(52%   0.130 158);
+  --color-safe-wash:  oklch(95.5% 0.030 158);
+  --color-check:      oklch(56%   0.130 75);
+  --color-check-wash: oklch(96%   0.035 80);
+  --color-cmd:        oklch(52%   0.205 258);
+  --color-cmd-wash:   oklch(95%   0.030 256);
+  --color-never:      oklch(54%   0.150 25);
+  --color-never-wash: oklch(96%   0.025 25);
+}
+
+:root {
+  /* ── type ─────────────────────────────────────────────── */
+  --font-display: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
+  --font-body:    "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-mono:    "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  --text-xs:      0.75rem;
+  --text-sm:      0.8125rem;
+  --text-base:    1rem;
+  --text-md:      1.0625rem;
+  --text-lg:      1.375rem;
+  --text-xl:      1.75rem;
+  --text-2xl:     2.25rem;
+  --text-3xl:     2.875rem;
+  --text-display:   clamp(2.5rem, 4vw + 0.8rem, 3.75rem);
+  --text-display-s: clamp(2.25rem, 3.6vw + 1rem, 3.5rem);
+
+  /* ── space (4pt scale) ────────────────────────────────── */
+  --space-3xs: 0.125rem;  --space-2xs: 0.25rem;  --space-xs:  0.5rem;
+  --space-sm:  0.75rem;   --space-md:  1rem;     --space-lg:  1.5rem;
+  --space-xl:  2.5rem;    --space-2xl: 4rem;     --space-3xl: 6rem;
+  --space-4xl: 9rem;
+
+  /* ── shape ────────────────────────────────────────────── */
+  --radius-control: 6px;    /* drawn with a ruler, never a pill */
+  --radius-card:    10px;
+  --rule-hair:      1px;
+
+  /* ── motion ───────────────────────────────────────────── */
+  --ease-out:    cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in:     cubic-bezier(0.7, 0, 0.84, 0);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --dur-micro:   120ms;
+  --dur-short:   220ms;
+  --dur-long:    420ms;
+
+  /* ── z-scale ──────────────────────────────────────────── */
+  --z-base: 1; --z-raised: 10; --z-dropdown: 100;
+  --z-sticky: 200; --z-modal: 400; --z-toast: 500; --z-tooltip: 600;
+
+  /* ── measure ──────────────────────────────────────────── */
+  --wrap: 74rem;
+  --measure: 62ch;
+}
