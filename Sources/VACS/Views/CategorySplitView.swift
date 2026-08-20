@@ -55,6 +55,7 @@ struct CategorySplitView: View {
                 }
             }
             .padding(12)
+            .padding(.bottom, 40)
         }
         .background(Theme.bg)
     }
