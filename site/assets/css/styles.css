@@ -501,8 +501,10 @@ kbd {
 .stickybar .btn { margin-left: auto; flex: none; }
 
 /* ══════════════ motion primitive 1 — one-shot stagger reveal ══════════════ */
-.reveal { opacity: 0; transform: translateY(10px); }
-.reveal.is-in {
+.reveal { opacity: 1; }
+/* only hide-then-reveal once JS is alive — if the script dies, content stays visible */
+.js .reveal { opacity: 0; transform: translateY(10px); }
+.js .reveal.is-in {
   opacity: 1; transform: none;
   transition: opacity var(--dur-long) var(--ease-out), transform var(--dur-long) var(--ease-out);
 }
