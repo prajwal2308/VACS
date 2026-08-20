@@ -217,13 +217,14 @@ function chrome() {
   const nav = $("#nav");
   const bar = $("#stickybar");
   const hero = $("#hero");
-  const footer = $(".colophon");
+  const footer = $(".foot");
+  if (!nav || !bar || !hero || !footer) return;
 
   new IntersectionObserver(([e]) => {
     nav.classList.toggle("is-stuck", !e.isIntersecting);
   }, { rootMargin: "-72px 0px 0px 0px" }).observe(hero);
 
-  // the sticky CTA appears once the hero is behind you, and retreats over the colophon
+  // the sticky CTA appears once the hero is behind you, and retreats over the footer
   let pastHero = false, atFoot = false;
   const sync = () => {
     bar.hidden = false;
