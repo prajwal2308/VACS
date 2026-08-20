@@ -2,6 +2,12 @@
 
 All notable changes to VACS are documented here.
 
+## [0.2.3] — 2026-08-20
+
+### Fixed
+
+- **Scroll cut-off in Installed Packages, AI & Skills and three other views** — the bottom inset added in 0.2.2 was applied before the fill-frame modifier, so the frame absorbed it and the last row stayed unreachable. The inset is now applied last.
+
 ## [0.2.2] — 2026-08-20
 
 ### Fixed

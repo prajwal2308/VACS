@@ -37,8 +37,8 @@ struct SidebarView: View {
                 .padding(.horizontal, 8)
                 .padding(.bottom, 12)
             }
-            .safeAreaInset(edge: .bottom) { Color.clear.frame(height: 96) }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .safeAreaInset(edge: .bottom) { Color.clear.frame(height: 96) }
             .layoutPriority(1)
 
             SidebarStorageCard()

@@ -37,8 +37,8 @@ struct InstalledPackagesView: View {
                     .padding(12)
                     .padding(.bottom, 40)
                 }
-                .safeAreaInset(edge: .bottom) { Color.clear.frame(height: 96) }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .safeAreaInset(edge: .bottom) { Color.clear.frame(height: 96) }
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
